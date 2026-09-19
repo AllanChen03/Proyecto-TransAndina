@@ -1,4 +1,4 @@
-package com.example.proyecto1ap
+package com.example.proyecto1ap.usuario
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
