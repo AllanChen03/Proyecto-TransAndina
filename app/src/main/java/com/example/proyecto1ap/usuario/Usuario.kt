@@ -13,4 +13,17 @@ data class Usuario(
     @SerialName("numero_licencia") val numeroLicencia: String? = null,
     val rol: String,
     val estado: String = "ACTIVO"
+)@Serializable
+
+data class UsuarioListado(
+    val id: String,
+    @SerialName("nombre_completo") val nombreCompleto: String,
+    val cedula: String,
+    val correo: String,
+    val telefono: String? = null,
+    @SerialName("numero_licencia") val numeroLicencia: String? = null,
+    val rol: String,
+    val estado: String,
+    @SerialName("vehiculo_id") val vehiculoId: Long? = null,
+    @SerialName("vehiculo_placa") val vehiculoPlaca: String? = null
 )

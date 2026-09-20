@@ -7,6 +7,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import com.example.proyecto1ap.usuario.PantallaCambiarContrasena
+import com.example.proyecto1ap.usuario.PantallaGestionUsuarios
 import com.example.proyecto1ap.usuario.PantallaHomeConductor
 import com.example.proyecto1ap.usuario.PantallaHomeEncargado
 import com.example.proyecto1ap.usuario.PantallaHomeMecanico
@@ -14,6 +15,7 @@ import com.example.proyecto1ap.usuario.PantallaInicial
 import com.example.proyecto1ap.usuario.PantallaRecuperarCorreo
 import com.example.proyecto1ap.usuario.PantallaRegistro
 import com.example.proyecto1ap.usuario.Usuario
+import com.example.proyecto1ap.vehiculo.PantallaFlotilla
 import com.example.proyecto1ap.vehiculo.PantallaVehiculoEditar
 import com.example.proyecto1ap.vehiculo.PantallaVehiculoRegistro
 
@@ -78,17 +80,28 @@ fun AppPrincipal(
         "homeEncargado" -> PantallaHomeEncargado(
             usuario = usuarioActual,
             onGestionFlotilla = { pantallaActual = "flotilla" },
-            cerrarSesion = {
-                usuarioActual = null
-                pantallaActual = "login"
-            }
+            onGestionUsuarios = { pantallaActual = "gestionUsuarios" },
+            cerrarSesion = { usuarioActual = null; pantallaActual = "login" }
         )
 
-        "flotilla" -> {
-            // pendiente: PantallaFlotilla
-        }
+        "gestionUsuarios" -> PantallaGestionUsuarios(
+            onVolver = { pantallaActual = "homeEncargado" },
+            modifier = modifier
+        )
+
+        "flotilla" -> PantallaFlotilla(
+            onVolver = { pantallaActual = "homeEncargado" },
+            onAgregar = { pantallaActual = "registroVehiculo" },
+            onVehiculo = { id ->
+                vehiculoSeleccionado = id
+                pantallaActual = "editarVehiculo"
+            },
+            modifier = modifier
+        )
 
         "registroVehiculo" -> PantallaVehiculoRegistro(
+            onVolver = { pantallaActual = "flotilla" },
+            onGuardado = { pantallaActual = "flotilla" },
             modifier = modifier
         )
 

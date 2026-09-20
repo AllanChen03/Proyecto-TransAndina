@@ -21,7 +21,10 @@ data class RegistroVehiculoState(
     val conductores: List<Usuario> = emptyList(),
     val guardando: Boolean = false,
     val mensaje: String? = null,
-    val exito: Boolean = false
+    val exito: Boolean = false,
+    val vencimientoMarchamo: String = "",
+    val vencimientoRevisionTecnica: String = "",
+    val vencimientoSeguro: String = "",
 ) {
     val puedeGuardar: Boolean
         get() = placa.isNotBlank() &&
@@ -65,6 +68,12 @@ class RegistroVehiculo : ViewModel() {
     fun onTipoCombustible(v: String) = _state.update { it.copy(tipoCombustible = v) }
     fun onConductor(id: String?) = _state.update { it.copy(conductorId = id) }
     fun limpiarMensaje() = _state.update { it.copy(mensaje = null) }
+
+    fun onVenceMarchamo(v: String) = _state.update { it.copy(vencimientoMarchamo = v) }
+
+    fun onVenceRevision(v: String) = _state.update { it.copy(vencimientoRevisionTecnica = v) }
+
+    fun onVenceSeguro(v: String) = _state.update { it.copy(vencimientoSeguro = v) }
 
     fun guardar() {
         val s = _state.value

@@ -21,6 +21,9 @@ data class EditarVehiculoState(
     val capacidad: String = "",
     val conductorId: String? = null,
     val estado: String = "ACTIVO",
+    val vencimientoMarchamo: String = "",
+    val vencimientoRevisionTecnica: String = "",
+    val vencimientoSeguro: String = "",
     val conductores: List<Usuario> = emptyList(),
     val cargando: Boolean = true,
     val guardando: Boolean = false,
@@ -45,6 +48,8 @@ class EditarVehiculo(private val vehiculoId: Long) : ViewModel() {
     private val _state = MutableStateFlow(EditarVehiculoState())
     val state = _state.asStateFlow()
 
+    private var original: EditarVehiculoState? = null
+
     init {
         cargar()
     }
@@ -68,10 +73,14 @@ class EditarVehiculo(private val vehiculoId: Long) : ViewModel() {
                             capacidad = v.capacidad?.toString() ?: "",
                             conductorId = v.conductorId,
                             estado = v.estado,
+                            vencimientoMarchamo = v.vencimientoMarchamo ?: "",
+                            vencimientoRevisionTecnica = v.vencimientoRevisionTecnica ?: "",
+                            vencimientoSeguro = v.vencimientoSeguro ?: "",
                             conductores = conductores,
                             cargando = false
                         )
                     }
+                    original = _state.value
                 }
                 .onFailure { e ->
                     _state.update {
@@ -90,9 +99,29 @@ class EditarVehiculo(private val vehiculoId: Long) : ViewModel() {
     fun onTipoVehiculo(v: String) = _state.update { it.copy(tipoVehiculo = v) }
     fun onTipoCombustible(v: String) = _state.update { it.copy(tipoCombustible = v) }
     fun onConductor(id: String?) = _state.update { it.copy(conductorId = id) }
+    fun onEstado(v: String) = _state.update { it.copy(estado = v) }
+    fun onVenceMarchamo(v: String) = _state.update { it.copy(vencimientoMarchamo = v) }
+    fun onVenceRevision(v: String) = _state.update { it.copy(vencimientoRevisionTecnica = v) }
+    fun onVenceSeguro(v: String) = _state.update { it.copy(vencimientoSeguro = v) }
     fun limpiarMensaje() = _state.update { it.copy(mensaje = null) }
 
-    fun onEstado(v: String) = _state.update { it.copy(estado = v) }
+    fun hayCambios(): Boolean {
+        val o = original ?: return false
+        val s = _state.value
+        return o.placa != s.placa ||
+                o.marca != s.marca ||
+                o.modelo != s.modelo ||
+                o.anio != s.anio ||
+                o.color != s.color ||
+                o.tipoVehiculo != s.tipoVehiculo ||
+                o.tipoCombustible != s.tipoCombustible ||
+                o.capacidad != s.capacidad ||
+                o.conductorId != s.conductorId ||
+                o.estado != s.estado ||
+                o.vencimientoMarchamo != s.vencimientoMarchamo ||
+                o.vencimientoRevisionTecnica != s.vencimientoRevisionTecnica ||
+                o.vencimientoSeguro != s.vencimientoSeguro
+    }
 
     fun guardar() {
         val s = _state.value
@@ -111,7 +140,10 @@ class EditarVehiculo(private val vehiculoId: Long) : ViewModel() {
                 tipoCombustible = s.tipoCombustible!!,
                 capacidad = s.capacidad.toIntOrNull(),
                 conductorId = s.conductorId,
-                estado = s.estado
+                estado = s.estado,
+                vencimientoMarchamo = s.vencimientoMarchamo.ifBlank { null },
+                vencimientoRevisionTecnica = s.vencimientoRevisionTecnica.ifBlank { null },
+                vencimientoSeguro = s.vencimientoSeguro.ifBlank { null }
             )
 
             repo.actualizar(s.id, datos)
@@ -123,6 +155,7 @@ class EditarVehiculo(private val vehiculoId: Long) : ViewModel() {
                             guardadoExitoso = true
                         )
                     }
+                    original = _state.value
                 }
                 .onFailure { e ->
                     val msg = when {

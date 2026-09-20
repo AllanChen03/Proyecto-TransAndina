@@ -30,4 +30,10 @@ class VehiculoRepository {
             filter { eq("id", id) }
         }
     }
+
+    suspend fun listar(): Result<List<VehiculoListado>> = runCatching {
+        SupabaseManager.client.from("vehiculos_listado")
+            .select()
+            .decodeList<VehiculoListado>()
+    }
 }

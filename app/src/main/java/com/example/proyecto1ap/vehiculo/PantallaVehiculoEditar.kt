@@ -1,40 +1,49 @@
 package com.example.proyecto1ap.vehiculo
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.proyecto1ap.ui.componentes.BotonPrimario
+import com.example.proyecto1ap.ui.componentes.CampoFechaSelector
 import com.example.proyecto1ap.ui.componentes.CampoSelector
 import com.example.proyecto1ap.ui.componentes.CampoTexto
-import com.example.proyecto1ap.ui.componentes.ChipEstado
-import com.example.proyecto1ap.ui.componentes.EstadoVisual
+import com.example.proyecto1ap.ui.theme.Borde
+import com.example.proyecto1ap.ui.theme.RojoTexto
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -46,6 +55,13 @@ fun PantallaVehiculoEditar(
 ) {
     val s by vm.state.collectAsState()
     val snackbar = remember { SnackbarHostState() }
+    var mostrarDialogo by remember { mutableStateOf(false) }
+
+    fun intentarSalir() {
+        if (vm.hayCambios()) mostrarDialogo = true else onVolver()
+    }
+
+    BackHandler { intentarSalir() }
 
     LaunchedEffect(s.mensaje) {
         s.mensaje?.let {
@@ -54,13 +70,45 @@ fun PantallaVehiculoEditar(
         }
     }
 
+    LaunchedEffect(s.guardadoExitoso) {
+        if (s.guardadoExitoso) onVolver()
+    }
+
+    if (mostrarDialogo) {
+        AlertDialog(
+            onDismissRequest = { mostrarDialogo = false },
+            title = { Text("Descartar cambios") },
+            text = {
+                Text("Hiciste cambios que no se han guardado. ¿Querés salir de todas formas?")
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    mostrarDialogo = false
+                    onVolver()
+                }) {
+                    Text("Descartar", color = RojoTexto)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { mostrarDialogo = false }) {
+                    Text("Seguir editando")
+                }
+            }
+        )
+    }
+
     Scaffold(
         modifier = modifier,
         topBar = {
             TopAppBar(
                 title = { Text("Editar vehículo") },
                 navigationIcon = {
-                    IconButton(onClick = onVolver) { Text("←") }
+                    IconButton(onClick = { intentarSalir() }) {
+                        Icon(
+                            Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Volver"
+                        )
+                    }
                 }
             )
         },
@@ -87,17 +135,6 @@ fun PantallaVehiculoEditar(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text("Estado del vehículo")
-                ChipEstado(
-                    texto = s.estado,
-                    estado = if (s.estado == "ACTIVO") EstadoVisual.OK else EstadoVisual.CRITICO
-                )
-            }
 
             CampoTexto("Placa", s.placa, vm::onPlaca)
             CampoTexto("Marca", s.marca, vm::onMarca)
@@ -143,13 +180,37 @@ fun PantallaVehiculoEditar(
                 placeholder = "Sin conductor asignado"
             )
 
-            Spacer(Modifier.height(8.dp))
+            Spacer(Modifier.height(4.dp))
+            HorizontalDivider(color = Borde)
+            Spacer(Modifier.height(4.dp))
 
-            BotonPrimario(
-                texto = if (s.guardando) "Guardando..." else "Guardar cambios",
-                onClick = vm::guardar,
-                habilitado = s.puedeGuardar
+            Text(
+                text = "Documentos legales",
+                fontSize = 16.sp,
+                fontWeight = FontWeight.SemiBold
             )
+
+            CampoFechaSelector(
+                etiqueta = "Vencimiento de marchamo",
+                valor = s.vencimientoMarchamo,
+                onFechaSeleccionada = vm::onVenceMarchamo
+            )
+
+            CampoFechaSelector(
+                etiqueta = "Vencimiento de revisión técnica",
+                valor = s.vencimientoRevisionTecnica,
+                onFechaSeleccionada = vm::onVenceRevision
+            )
+
+            CampoFechaSelector(
+                etiqueta = "Vencimiento de seguro",
+                valor = s.vencimientoSeguro,
+                onFechaSeleccionada = vm::onVenceSeguro
+            )
+
+            Spacer(Modifier.height(4.dp))
+            HorizontalDivider(color = Borde)
+            Spacer(Modifier.height(4.dp))
 
             CampoSelector(
                 etiqueta = "Estado",
@@ -157,7 +218,16 @@ fun PantallaVehiculoEditar(
                 opciones = ESTADOS.map { it.second },
                 onSeleccion = { etiqueta ->
                     vm.onEstado(ESTADOS.first { it.second == etiqueta }.first)
-                }
+                },
+                placeholder = "Seleccionar estado"
+            )
+
+            Spacer(Modifier.height(8.dp))
+
+            BotonPrimario(
+                texto = if (s.guardando) "Guardando..." else "Guardar cambios",
+                onClick = vm::guardar,
+                habilitado = s.puedeGuardar
             )
 
             Spacer(Modifier.height(24.dp))
