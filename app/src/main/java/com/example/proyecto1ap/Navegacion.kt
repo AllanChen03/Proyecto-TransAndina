@@ -15,9 +15,9 @@ import com.example.proyecto1ap.usuario.PantallaInicial
 import com.example.proyecto1ap.usuario.PantallaRecuperarCorreo
 import com.example.proyecto1ap.usuario.PantallaRegistro
 import com.example.proyecto1ap.usuario.Usuario
-import com.example.proyecto1ap.Vehiculo.PantallaFlotilla
-import com.example.proyecto1ap.Vehiculo.PantallaVehiculoEditar
-import com.example.proyecto1ap.Vehiculo.PantallaVehiculoRegistro
+import com.example.proyecto1ap.vehiculo.PantallaFlotilla
+import com.example.proyecto1ap.vehiculo.PantallaVehiculoEditar
+import com.example.proyecto1ap.vehiculo.PantallaVehiculoRegistro
 import com.example.proyecto1ap.kilometraje.PantallaRegistrarKilometraje
 import com.example.proyecto1ap.kilometraje.PantallaHistorialKilometraje
 import com.example.proyecto1ap.alertas.PantallaCentroAlertas

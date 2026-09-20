@@ -2,7 +2,7 @@ package com.example.proyecto1ap.reportes
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.proyecto1ap.Vehiculo.VehiculoListado
+import com.example.proyecto1ap.vehiculo.VehiculoListado
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update

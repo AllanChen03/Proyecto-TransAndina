@@ -3,7 +3,7 @@ package com.example.proyecto1ap.kilometraje
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import com.example.proyecto1ap.Vehiculo.VehiculoListado
+import com.example.proyecto1ap.vehiculo.VehiculoListado
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update

@@ -1,7 +1,7 @@
 package com.example.proyecto1ap.kilometraje
 
 import com.example.proyecto1ap.SupabaseManager
-import com.example.proyecto1ap.Vehiculo.VehiculoListado
+import com.example.proyecto1ap.vehiculo.VehiculoListado
 import io.github.jan.supabase.postgrest.from
 import io.github.jan.supabase.postgrest.query.Columns
 import io.github.jan.supabase.postgrest.query.Order

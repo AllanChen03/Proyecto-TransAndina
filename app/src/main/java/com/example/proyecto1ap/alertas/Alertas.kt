@@ -1,6 +1,6 @@
 package com.example.proyecto1ap.alertas
 
-import com.example.proyecto1ap.Vehiculo.VehiculoListado
+import com.example.proyecto1ap.vehiculo.VehiculoListado
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import java.time.LocalDate

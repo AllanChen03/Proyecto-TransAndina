@@ -1,4 +1,4 @@
-package com.example.proyecto1ap.Vehiculo
+package com.example.proyecto1ap.vehiculo
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable

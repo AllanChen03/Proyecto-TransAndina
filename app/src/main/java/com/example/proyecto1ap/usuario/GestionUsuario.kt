@@ -2,7 +2,7 @@ package com.example.proyecto1ap.usuario
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.proyecto1ap.Vehiculo.Vehiculo
+import com.example.proyecto1ap.vehiculo.Vehiculo
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update

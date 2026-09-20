@@ -1,7 +1,7 @@
 package com.example.proyecto1ap.usuario
 
 import com.example.proyecto1ap.SupabaseManager
-import com.example.proyecto1ap.Vehiculo.Vehiculo
+import com.example.proyecto1ap.vehiculo.Vehiculo
 import io.github.jan.supabase.postgrest.from
 
 class UsuarioRepository {

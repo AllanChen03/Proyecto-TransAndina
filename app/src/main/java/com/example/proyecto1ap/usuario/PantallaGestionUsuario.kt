@@ -290,7 +290,7 @@ private fun TarjetaUsuario(
 @Composable
 private fun DialogoAsignarVehiculo(
     usuario: UsuarioListado,
-    vehiculos: List<com.example.proyecto1ap.Vehiculo.Vehiculo>,
+    vehiculos: List<com.example.proyecto1ap.vehiculo.Vehiculo>,
     onAsignar: (Long?) -> Unit,
     onCerrar: () -> Unit
 ) {
