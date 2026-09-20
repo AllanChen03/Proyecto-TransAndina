@@ -191,6 +191,7 @@ fun PantallaHomeEncargado(
     usuario: Usuario?,
     onGestionFlotilla: () -> Unit = {},
     onGestionUsuarios: () -> Unit = {},
+    onReportes: () -> Unit = {},
     onAlertas: () -> Unit = {},
     onEditarPerfil: () -> Unit = {},
     cerrarSesion: () -> Unit
@@ -200,6 +201,7 @@ fun PantallaHomeEncargado(
         opciones = listOf(
             OpcionMenu("Gestión de flotilla", onGestionFlotilla),
             OpcionMenu("Gestión de usuarios", onGestionUsuarios),
+            OpcionMenu("Reportes de mantenimiento", onReportes),
             OpcionMenu("Editar perfil", onEditarPerfil)
         ),
         onAlertas = onAlertas,
@@ -211,6 +213,7 @@ fun PantallaHomeEncargado(
 fun PantallaHomeConductor(
     usuario: Usuario?,
     onRegistrarKilometraje: () -> Unit = {},
+    onHistorialKilometraje: () -> Unit = {},
     onVerVehiculo: () -> Unit = {},
     onAlertas: () -> Unit = {},
     onEditarPerfil: () -> Unit = {},
@@ -220,6 +223,7 @@ fun PantallaHomeConductor(
         usuario = usuario,
         opciones = listOf(
             OpcionMenu("Registrar kilometraje", onRegistrarKilometraje),
+            OpcionMenu("Historial de kilometraje", onHistorialKilometraje),
             OpcionMenu("Ver vehículo asignado", onVerVehiculo),
             OpcionMenu("Editar perfil", onEditarPerfil)
         ),

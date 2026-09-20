@@ -20,6 +20,10 @@ import com.example.proyecto1ap.usuario.Usuario
 import com.example.proyecto1ap.vehiculo.PantallaFlotilla
 import com.example.proyecto1ap.vehiculo.PantallaVehiculoEditar
 import com.example.proyecto1ap.vehiculo.PantallaVehiculoRegistro
+import com.example.proyecto1ap.kilometraje.PantallaRegistrarKilometraje
+import com.example.proyecto1ap.kilometraje.PantallaHistorialKilometraje
+import com.example.proyecto1ap.alertas.PantallaCentroAlertas
+import com.example.proyecto1ap.reportes.PantallaReportes
 import com.example.proyecto1ap.vehiculo.PantallaDetalleVehiculo
 
 @Composable
@@ -32,6 +36,9 @@ fun AppPrincipal(
     var vehiculoSeleccionado by remember { mutableStateOf(0L) }
     var usuarioSeleccionado by remember { mutableStateOf("") }
     var pantallaAnterior by remember { mutableStateOf("login") }
+    var historialVehiculoId by remember { mutableStateOf<Long?>(null) }
+    var historialVolver by remember { mutableStateOf("homeConductor") }
+    var alertasVolver by remember { mutableStateOf("homeConductor") }
 
     when (pantallaActual) {
         "login" -> PantallaInicial(
@@ -72,6 +79,13 @@ fun AppPrincipal(
                 pantallaAnterior = "homeConductor"
                 pantallaActual = "editarPerfil"
             },
+            onRegistrarKilometraje = { pantallaActual = "registrarKilometraje" },
+            onHistorialKilometraje = {
+                historialVehiculoId = null
+                historialVolver = "homeConductor"
+                pantallaActual = "historialKilometraje"
+            },
+            onAlertas = { alertasVolver = "homeConductor"; pantallaActual = "centroAlertas" },
             cerrarSesion = {
                 usuarioActual = null
                 pantallaActual = "login"
@@ -84,6 +98,7 @@ fun AppPrincipal(
                 pantallaAnterior = "homeMecanico"
                 pantallaActual = "editarPerfil"
             },
+            onAlertas = { alertasVolver = "homeMecanico"; pantallaActual = "centroAlertas" },
             cerrarSesion = {
                 usuarioActual = null
                 pantallaActual = "login"
@@ -94,6 +109,8 @@ fun AppPrincipal(
             usuario = usuarioActual,
             onGestionFlotilla = { pantallaActual = "flotilla" },
             onGestionUsuarios = { pantallaActual = "gestionUsuarios" },
+            onAlertas = { alertasVolver = "homeEncargado"; pantallaActual = "centroAlertas" },
+            onReportes = { pantallaActual = "reportes" },
             onEditarPerfil = {
                 pantallaAnterior = "homeEncargado"
                 pantallaActual = "editarPerfil"
@@ -131,7 +148,7 @@ fun AppPrincipal(
             onAgregar = { pantallaActual = "registroVehiculo" },
             onVehiculo = { id ->
                 vehiculoSeleccionado = id
-                pantallaActual = "detalleVehiculo"
+                pantallaActual = "editarVehiculo"
             },
             modifier = modifier
         )
@@ -158,6 +175,40 @@ fun AppPrincipal(
         "editarVehiculo" -> PantallaVehiculoEditar(
             vehiculoId = vehiculoSeleccionado,
             onVolver = { pantallaActual = "flotilla" },
+            onHistorialKm = {
+                historialVehiculoId = vehiculoSeleccionado
+                historialVolver = "editarVehiculo"
+                pantallaActual = "historialKilometraje"
+            },
+            modifier = modifier
+
+        )
+
+        "registrarKilometraje" -> usuarioActual?.let { u ->
+            PantallaRegistrarKilometraje(
+                conductorId = u.id,
+                onVolver = { pantallaActual = "homeConductor" },
+                onGuardado = { pantallaActual = "homeConductor" },
+                modifier = modifier
+            )
+        }
+
+        "historialKilometraje" -> PantallaHistorialKilometraje(
+            vehiculoId = historialVehiculoId,
+            conductorId = usuarioActual?.id,
+            onVolver = { pantallaActual = historialVolver },
+            modifier = modifier
+        )
+        "centroAlertas" -> PantallaCentroAlertas(
+            conductorId = usuarioActual
+                ?.takeIf { it.rol.trim().uppercase() == "CONDUCTOR" }
+                ?.id,
+            usuarioId = usuarioActual?.id,
+            onVolver = { pantallaActual = alertasVolver },
+            modifier = modifier
+        )
+        "reportes" -> PantallaReportes(
+            onVolver = { pantallaActual = "homeEncargado" },
             modifier = modifier
         )
     }

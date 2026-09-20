@@ -45,12 +45,15 @@ import com.example.proyecto1ap.ui.componentes.CampoTexto
 import com.example.proyecto1ap.ui.theme.Borde
 import com.example.proyecto1ap.ui.theme.RojoTexto
 import com.example.proyecto1ap.ui.theme.TextoSecundario
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.foundation.layout.fillMaxWidth
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PantallaVehiculoEditar(
     vehiculoId: Long,
     onVolver: () -> Unit = {},
+    onHistorialKm: () -> Unit = {},
     modifier: Modifier = Modifier,
     vm: EditarVehiculo = viewModel(
         key = vehiculoId.toString(),
@@ -140,8 +143,6 @@ fun PantallaVehiculoEditar(
             verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
 
-            // ---------- Datos generales ----------
-
             CampoTexto("Placa", s.placa, vm::onPlaca)
             CampoTexto("Marca", s.marca, vm::onMarca)
             CampoTexto("Modelo", s.modelo, vm::onModelo)
@@ -176,7 +177,15 @@ fun PantallaVehiculoEditar(
                 tipoTeclado = KeyboardType.Number
             )
 
-            // ---------- Documentos legales ----------
+            CampoSelector(
+                etiqueta = "Conductor asignado",
+                valorSeleccionado = s.conductores.find { it.id == s.conductorId }?.nombreCompleto,
+                opciones = s.conductores.map { it.nombreCompleto },
+                onSeleccion = { nombre ->
+                    vm.onConductor(s.conductores.first { it.nombreCompleto == nombre }.id)
+                },
+                placeholder = "Sin conductor asignado"
+            )
 
             Spacer(Modifier.height(4.dp))
             HorizontalDivider(color = Borde)
@@ -209,8 +218,6 @@ fun PantallaVehiculoEditar(
             Spacer(Modifier.height(4.dp))
             HorizontalDivider(color = Borde)
             Spacer(Modifier.height(4.dp))
-
-            // ---------- Estado y conductor ----------
 
             CampoSelector(
                 etiqueta = "Estado",
@@ -258,7 +265,12 @@ fun PantallaVehiculoEditar(
                 onClick = vm::guardar,
                 habilitado = s.puedeGuardar
             )
-
+            OutlinedButton(
+                onClick = onHistorialKm,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Ver historial de kilometraje")
+            }
             Spacer(Modifier.height(24.dp))
         }
     }
