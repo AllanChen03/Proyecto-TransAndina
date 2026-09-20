@@ -61,7 +61,8 @@ fun CampoTexto(
     placeholder: String = "",
     error: String? = null,
     tipoTeclado: KeyboardType = KeyboardType.Text,
-    lineasMaximas: Int = 1
+    lineasMaximas: Int = 1,
+    prefijo: String? = null
 ) {
     Column(modifier = modifier.fillMaxWidth()) {
         Text(
@@ -77,6 +78,7 @@ fun CampoTexto(
             placeholder = {
                 Text(placeholder, color = TextoSecundario, fontSize = 15.sp)
             },
+            prefix = prefijo?.let { valor -> { Text(valor, fontSize = 15.sp, color = TextoPrincipal) } },
             isError = error != null,
             singleLine = lineasMaximas == 1,
             maxLines = lineasMaximas,

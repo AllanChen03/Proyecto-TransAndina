@@ -6,6 +6,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import com.example.proyecto1ap.mantenimiento.PantallaCentroAlertas
+import com.example.proyecto1ap.mantenimiento.PantallaHistorialMantenimientos
+import com.example.proyecto1ap.mantenimiento.PantallaRegistrarMantenimiento
 import com.example.proyecto1ap.usuario.PantallaCambiarContrasena
 import com.example.proyecto1ap.usuario.PantallaGestionUsuarios
 import com.example.proyecto1ap.usuario.PantallaHomeConductor
@@ -71,10 +74,30 @@ fun AppPrincipal(
 
         "homeMecanico" -> PantallaHomeMecanico(
             usuario = usuarioActual,
+            onRegistrarMantenimiento = { pantallaActual = "registrarMantenimiento" },
+            onHistorialMantenimientos = { pantallaActual = "historialMantenimientos" },
+            onAlertas = { pantallaActual = "centroAlertas" },
             cerrarSesion = {
                 usuarioActual = null
                 pantallaActual = "login"
-            }
+            },
+            modifier = modifier
+        )
+
+        "registrarMantenimiento" -> PantallaRegistrarMantenimiento(
+            onVolver = { pantallaActual = "homeMecanico" },
+            onGuardado = { pantallaActual = "homeMecanico" },
+            modifier = modifier
+        )
+
+        "historialMantenimientos" -> PantallaHistorialMantenimientos(
+            onVolver = { pantallaActual = "homeMecanico" },
+            modifier = modifier
+        )
+
+        "centroAlertas" -> PantallaCentroAlertas(
+            onVolver = { pantallaActual = "homeMecanico" },
+            modifier = modifier
         )
 
         "homeEncargado" -> PantallaHomeEncargado(
