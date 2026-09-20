@@ -44,12 +44,15 @@ import com.example.proyecto1ap.ui.componentes.CampoSelector
 import com.example.proyecto1ap.ui.componentes.CampoTexto
 import com.example.proyecto1ap.ui.theme.Borde
 import com.example.proyecto1ap.ui.theme.RojoTexto
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.foundation.layout.fillMaxWidth
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PantallaVehiculoEditar(
     vehiculoId: Long,
     onVolver: () -> Unit = {},
+    onHistorialKm: () -> Unit = {},
     modifier: Modifier = Modifier,
     vm: EditarVehiculo = viewModel(factory = EditarVehiculoFactory(vehiculoId))
 ) {
@@ -229,7 +232,12 @@ fun PantallaVehiculoEditar(
                 onClick = vm::guardar,
                 habilitado = s.puedeGuardar
             )
-
+            OutlinedButton(
+                onClick = onHistorialKm,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Ver historial de kilometraje")
+            }
             Spacer(Modifier.height(24.dp))
         }
     }

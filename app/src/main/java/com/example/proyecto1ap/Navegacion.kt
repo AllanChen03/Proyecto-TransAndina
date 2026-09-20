@@ -19,6 +19,7 @@ import com.example.proyecto1ap.Vehiculo.PantallaFlotilla
 import com.example.proyecto1ap.Vehiculo.PantallaVehiculoEditar
 import com.example.proyecto1ap.Vehiculo.PantallaVehiculoRegistro
 import com.example.proyecto1ap.kilometraje.PantallaRegistrarKilometraje
+import com.example.proyecto1ap.kilometraje.PantallaHistorialKilometraje
 
 @Composable
 fun AppPrincipal(
@@ -28,6 +29,8 @@ fun AppPrincipal(
     var pantallaActual by remember { mutableStateOf(pantallaInicial) }
     var usuarioActual by remember { mutableStateOf<Usuario?>(null) }
     var vehiculoSeleccionado by remember { mutableStateOf(0L) }
+    var historialVehiculoId by remember { mutableStateOf<Long?>(null) }
+    var historialVolver by remember { mutableStateOf("homeConductor") }
 
     when (pantallaActual) {
         "login" -> PantallaInicial(
@@ -65,10 +68,16 @@ fun AppPrincipal(
         "homeConductor" -> PantallaHomeConductor(
             usuario = usuarioActual,
             onRegistrarKilometraje = { pantallaActual = "registrarKilometraje" },
+            onHistorialKilometraje = {
+                historialVehiculoId = null
+                historialVolver = "homeConductor"
+                pantallaActual = "historialKilometraje"
+            },
             cerrarSesion = {
                 usuarioActual = null
                 pantallaActual = "login"
             }
+
         )
 
         "homeMecanico" -> PantallaHomeMecanico(
@@ -110,8 +119,15 @@ fun AppPrincipal(
         "editarVehiculo" -> PantallaVehiculoEditar(
             vehiculoId = vehiculoSeleccionado,
             onVolver = { pantallaActual = "flotilla" },
+            onHistorialKm = {
+                historialVehiculoId = vehiculoSeleccionado
+                historialVolver = "editarVehiculo"
+                pantallaActual = "historialKilometraje"
+            },
             modifier = modifier
+
         )
+
         "registrarKilometraje" -> usuarioActual?.let { u ->
             PantallaRegistrarKilometraje(
                 conductorId = u.id,
@@ -120,5 +136,12 @@ fun AppPrincipal(
                 modifier = modifier
             )
         }
+
+        "historialKilometraje" -> PantallaHistorialKilometraje(
+            vehiculoId = historialVehiculoId,
+            conductorId = usuarioActual?.id,
+            onVolver = { pantallaActual = historialVolver },
+            modifier = modifier
+        )
     }
 }
