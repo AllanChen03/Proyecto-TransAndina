@@ -47,6 +47,9 @@ import com.example.proyecto1ap.ui.theme.TextoSecundario
 import com.example.proyecto1ap.ui.theme.VerdeFondo
 import com.example.proyecto1ap.ui.theme.VerdeTexto
 import java.util.UUID
+import java.time.OffsetDateTime
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -163,7 +166,7 @@ private fun TituloSeccion(texto: String) {
 }
 
 @Composable
-private fun TarjetaAlerta(alerta: AlertaCalculada) {
+fun TarjetaAlerta(alerta: AlertaCalculada) {
     val color = if (alerta.severidad == Severidad.URGENTE) RojoTexto else AmarilloTexto
     val etiqueta = if (alerta.severidad == Severidad.URGENTE) "URGENTE" else "ADVERTENCIA"
 
@@ -205,7 +208,7 @@ private fun TarjetaAlerta(alerta: AlertaCalculada) {
     }
 }
 @Composable
-private fun TarjetaNotificacion(n: NotificacionFila) {
+fun TarjetaNotificacion(n: NotificacionFila) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(containerColor = Superficie),
@@ -221,7 +224,11 @@ private fun TarjetaNotificacion(n: NotificacionFila) {
             )
             Text(n.mensaje, fontSize = 13.sp, color = TextoSecundario)
             Text(
-                n.createdAt.take(10),
+                runCatching {
+                    OffsetDateTime.parse(n.createdAt)
+                        .atZoneSameInstant(ZoneId.systemDefault())
+                        .format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"))
+                }.getOrDefault(n.createdAt.take(10)),
                 fontSize = 12.sp,
                 color = TextoSecundario,
                 modifier = Modifier.padding(top = 4.dp)

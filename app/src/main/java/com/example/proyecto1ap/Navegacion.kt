@@ -22,6 +22,7 @@ import com.example.proyecto1ap.kilometraje.PantallaRegistrarKilometraje
 import com.example.proyecto1ap.kilometraje.PantallaHistorialKilometraje
 import com.example.proyecto1ap.alertas.PantallaCentroAlertas
 import com.example.proyecto1ap.reportes.PantallaReportes
+
 @Composable
 fun AppPrincipal(
     modifier: Modifier = Modifier,

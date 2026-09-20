@@ -35,5 +35,9 @@ class AlertasRepository {
                 }
                 order("created_at", Order.DESCENDING)
             }.decodeList<NotificacionFila>()
+                .sortedWith(
+                    compareByDescending<NotificacionFila> { it.createdAt }
+                        .thenByDescending { it.id }
+                )
         }.getOrDefault(emptyList())
 }

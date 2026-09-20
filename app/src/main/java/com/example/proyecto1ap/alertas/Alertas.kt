@@ -93,3 +93,17 @@ data class NotificacionFila(
     val prioridad: String,
     @SerialName("created_at") val createdAt: String
 )
+data class ProximoMantenimiento(
+    val proximoKm: Int,
+    val restanteKm: Int,
+    val umbralKm: Int
+)
+
+fun calcularProximoMantenimiento(
+    v: VehiculoListado,
+    config: ConfiguracionMantenimiento
+): ProximoMantenimiento? {
+    val kmActual = v.kilometrajeActual ?: return null
+    val proximo = (v.kmUltimoMantenimiento ?: 0) + config.intervaloKm
+    return ProximoMantenimiento(proximo, proximo - kmActual, config.umbralAlertaKm)
+}

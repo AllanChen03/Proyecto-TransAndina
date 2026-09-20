@@ -43,6 +43,9 @@ import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 import java.util.UUID
+import com.example.proyecto1ap.ui.componentes.FilaDato
+import com.example.proyecto1ap.ui.theme.AmarilloTexto
+import com.example.proyecto1ap.ui.theme.VerdeTexto
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -135,6 +138,31 @@ fun PantallaHistorialKilometraje(
                                     fontWeight = FontWeight.Bold,
                                     color = TextoPrincipal
                                 )
+                                s.proximo?.let { p ->
+                                    val colorRestante = when {
+                                        p.restanteKm < 0 -> RojoTexto
+                                        p.restanteKm <= p.umbralKm -> AmarilloTexto
+                                        else -> VerdeTexto
+                                    }
+                                    Spacer(Modifier.height(12.dp))
+                                    HorizontalDivider(color = Borde)
+                                    FilaDato("Próximo mantenimiento", "%,d km".format(p.proximoKm))
+                                    Row(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(vertical = 6.dp),
+                                        horizontalArrangement = Arrangement.SpaceBetween
+                                    ) {
+                                        Text("Restante", color = TextoSecundario, fontSize = 15.sp)
+                                        Text(
+                                            text = if (p.restanteKm < 0) "Atrasado ${"%,d".format(-p.restanteKm)} km"
+                                            else "%,d km".format(p.restanteKm),
+                                            fontWeight = FontWeight.SemiBold,
+                                            fontSize = 15.sp,
+                                            color = colorRestante
+                                        )
+                                    }
+                                }
                             }
                         }
 
