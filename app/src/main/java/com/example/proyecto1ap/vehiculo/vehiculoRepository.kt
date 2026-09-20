@@ -36,4 +36,10 @@ class VehiculoRepository {
             .select()
             .decodeList<VehiculoListado>()
     }
+
+    suspend fun detalle(id: Long): Result<VehiculoListado> = runCatching {
+        SupabaseManager.client.from("vehiculos_listado").select {
+            filter { eq("id", id) }
+        }.decodeSingle<VehiculoListado>()
+    }
 }

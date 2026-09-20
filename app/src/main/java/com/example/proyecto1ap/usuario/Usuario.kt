@@ -25,5 +25,15 @@ data class UsuarioListado(
     val rol: String,
     val estado: String,
     @SerialName("vehiculo_id") val vehiculoId: Long? = null,
-    @SerialName("vehiculo_placa") val vehiculoPlaca: String? = null
+    @SerialName("vehiculo_placa") val vehiculoPlaca: String? = null,
+    @SerialName("vehiculo_marca") val vehiculoMarca: String? = null,
+    @SerialName("vehiculo_modelo") val vehiculoModelo: String? = null,
+    @SerialName("vehiculo_anio") val vehiculoAnio: Int? = null,
+    @SerialName("vehiculo_combustible") val vehiculoCombustible: String? = null
+
+)
+@Serializable
+data class PerfilEditable(
+    @SerialName("nombre_completo") val nombreCompleto: String,
+    val telefono: String? = null
 )

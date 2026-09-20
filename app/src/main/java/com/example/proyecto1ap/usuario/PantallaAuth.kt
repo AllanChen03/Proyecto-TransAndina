@@ -64,6 +64,8 @@ import io.github.jan.supabase.auth.providers.builtin.Email
 import io.github.jan.supabase.postgrest.from
 import kotlinx.coroutines.launch
 
+private const val MIN_CONTRASENA = 8
+
 @Composable
 fun PantallaInicial(
     modifier: Modifier = Modifier,
@@ -248,7 +250,11 @@ fun PantallaInicial(
                                         .decodeSingle<Usuario>()
 
                                     if (usuario.estado.trim().uppercase() != "ACTIVO") {
-                                        mensaje = "Tu cuenta no está activa"
+                                        SupabaseManager.client.auth.signOut()
+                                        mensaje = if (usuario.estado.trim().uppercase() == "SUSPENDIDO")
+                                            "Tu cuenta está suspendida. Contactá al encargado de flota."
+                                        else
+                                            "Tu cuenta está desactivada."
                                         cargando = false
                                         return@launch
                                     }
@@ -305,6 +311,7 @@ fun PantallaRegistro(
     var expanded by remember { mutableStateOf(false) }
     var licenciaNum by remember { mutableStateOf("") }
     var contrasena by remember { mutableStateOf("") }
+    var verContrasena by remember { mutableStateOf(false) }
     var mensaje by remember { mutableStateOf("") }
 
     val roles = listOf("CONDUCTOR", "MECANICO", "ENCARGADO")
@@ -312,7 +319,9 @@ fun PantallaRegistro(
     Column(
         modifier = modifier
             .fillMaxSize()
+            .background(FondoApp)
             .verticalScroll(rememberScrollState())
+            .imePadding()
             .padding(24.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
@@ -321,74 +330,135 @@ fun PantallaRegistro(
             fontSize = 28.sp,
             fontWeight = FontWeight.Bold
         )
-        Text("Nombre completo")
-        OutlinedTextField(
-            value = nombreCompleto,
-            onValueChange = { nuevoTexto -> nombreCompleto = nuevoTexto }
-        )
-        Text("Cédula")
-        OutlinedTextField(
-            value = cedula,
-            onValueChange = { nuevoTexto -> cedula = nuevoTexto }
-        )
-        Text("Correo electrónico")
-        OutlinedTextField(
-            value = correo,
-            onValueChange = { nuevoTexto -> correo = nuevoTexto }
-        )
-        Text("Teléfono")
-        OutlinedTextField(
-            value = telefono,
-            onValueChange = { nuevoTexto -> telefono = nuevoTexto }
-        )
-        Text("Rol")
-        ExposedDropdownMenuBox(
-            expanded = expanded,
-            onExpandedChange = { expanded = !expanded }
-        ) {
-            OutlinedTextField(
-                value = rol,
-                onValueChange = {},
-                readOnly = true,
-                label = { Text("") },
-                trailingIcon = {
-                    ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
-                },
-                modifier = Modifier.menuAnchor()
-            )
 
-            ExposedDropdownMenu(
+        CampoTexto("Nombre completo", nombreCompleto, { nombreCompleto = it })
+        CampoTexto("Cédula", cedula, { cedula = it })
+        CampoTexto(
+            "Correo electrónico", correo, { correo = it },
+            tipoTeclado = KeyboardType.Email
+        )
+        CampoTexto(
+            "Teléfono", telefono, { telefono = it },
+            tipoTeclado = KeyboardType.Phone
+        )
+
+        Column {
+            Text(
+                text = "Rol",
+                fontSize = 13.sp,
+                color = TextoSecundario,
+                modifier = Modifier.padding(bottom = 6.dp)
+            )
+            ExposedDropdownMenuBox(
                 expanded = expanded,
-                onDismissRequest = { expanded = false }
+                onExpandedChange = { expanded = !expanded }
             ) {
-                roles.forEach { opcion ->
-                    DropdownMenuItem(
-                        text = { Text(opcion) },
-                        onClick = {
-                            rol = opcion
-                            expanded = false
-                        }
+                OutlinedTextField(
+                    value = rol,
+                    onValueChange = {},
+                    readOnly = true,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .menuAnchor(),
+                    shape = RoundedCornerShape(8.dp),
+                    trailingIcon = {
+                        ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
+                    },
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = AzulPrimario,
+                        unfocusedBorderColor = Borde,
+                        focusedContainerColor = Superficie,
+                        unfocusedContainerColor = Superficie
                     )
+                )
+
+                ExposedDropdownMenu(
+                    expanded = expanded,
+                    onDismissRequest = { expanded = false }
+                ) {
+                    roles.forEach { opcion ->
+                        DropdownMenuItem(
+                            text = { Text(opcion) },
+                            onClick = {
+                                rol = opcion
+                                expanded = false
+                            }
+                        )
+                    }
                 }
             }
         }
+
         if (rol == "CONDUCTOR") {
-            Text("Número de licencia")
+            CampoTexto("Número de licencia", licenciaNum, { licenciaNum = it })
+        }
+
+        Column {
+            Text(
+                text = "Contraseña",
+                fontSize = 13.sp,
+                color = TextoSecundario,
+                modifier = Modifier.padding(bottom = 6.dp)
+            )
             OutlinedTextField(
-                value = licenciaNum,
-                onValueChange = { nuevoTexto -> licenciaNum = nuevoTexto }
+                value = contrasena,
+                onValueChange = { contrasena = it },
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true,
+                shape = RoundedCornerShape(8.dp),
+                visualTransformation = if (verContrasena)
+                    VisualTransformation.None
+                else PasswordVisualTransformation(),
+                trailingIcon = {
+                    IconButton(onClick = { verContrasena = !verContrasena }) {
+                        Icon(
+                            imageVector = if (verContrasena)
+                                Icons.Filled.VisibilityOff
+                            else Icons.Filled.Visibility,
+                            contentDescription = if (verContrasena)
+                                "Ocultar contraseña"
+                            else "Mostrar contraseña",
+                            tint = TextoSecundario
+                        )
+                    }
+                },
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = AzulPrimario,
+                    unfocusedBorderColor = Borde,
+                    focusedContainerColor = Superficie,
+                    unfocusedContainerColor = Superficie
+                )
+            )
+            Spacer(Modifier.height(4.dp))
+            Text(
+                text = if (contrasena.isBlank() || contrasena.length >= MIN_CONTRASENA)
+                    "Mínimo $MIN_CONTRASENA caracteres"
+                else
+                    "Faltan ${MIN_CONTRASENA - contrasena.length} caracteres",
+                fontSize = 12.sp,
+                color = if (contrasena.isNotBlank() && contrasena.length < MIN_CONTRASENA)
+                    RojoTexto
+                else
+                    TextoSecundario
             )
         }
-        Text("Contraseña")
-        OutlinedTextField(
-            value = contrasena,
-            onValueChange = { nuevoTexto -> contrasena = nuevoTexto },
-            visualTransformation = PasswordVisualTransformation()
-        )
-        Button(
-            modifier = Modifier.fillMaxWidth(),
+
+        if (mensaje.isNotBlank()) {
+            Text(
+                text = mensaje,
+                fontSize = 13.sp,
+                color = RojoTexto
+            )
+        }
+
+        Spacer(Modifier.height(4.dp))
+
+        BotonPrimario(
+            texto = "Registrar usuario",
             onClick = {
                 scope.launch {
+                    mensaje = ""
+
                     if (nombreCompleto.isBlank()) {
                         mensaje = "Debe ingresar el nombre completo"
                         return@launch
@@ -397,20 +467,36 @@ fun PantallaRegistro(
                         mensaje = "Debe ingresar la cédula"
                         return@launch
                     }
+
+                    // ← Acá se declara, después de verificar que no esté vacía
+                    val cedulaLimpia = cedula.filter { it.isDigit() }
+                    if (cedulaLimpia.length < 9) {
+                        mensaje = "La cédula debe tener al menos 9 dígitos"
+                        return@launch
+                    }
+
                     if (correo.isBlank()) {
                         mensaje = "Debe ingresar el correo"
+                        return@launch
+                    }
+                    if (!correo.contains("@") || !correo.contains(".")) {
+                        mensaje = "Ingrese un correo válido"
                         return@launch
                     }
                     if (telefono.isBlank()) {
                         mensaje = "Debe ingresar el teléfono"
                         return@launch
                     }
+                    if (rol == "CONDUCTOR" && licenciaNum.isBlank()) {
+                        mensaje = "Debe ingresar el número de licencia"
+                        return@launch
+                    }
                     if (contrasena.isBlank()) {
                         mensaje = "Debe ingresar la contraseña"
                         return@launch
                     }
-                    if (rol == "CONDUCTOR" && licenciaNum.isBlank()) {
-                        mensaje = "Debe ingresar el número de licencia"
+                    if (contrasena.length < MIN_CONTRASENA) {
+                        mensaje = "La contraseña debe tener al menos $MIN_CONTRASENA caracteres"
                         return@launch
                     }
 
@@ -429,7 +515,7 @@ fun PantallaRegistro(
                         val perfil = Usuario(
                             id = userId,
                             nombreCompleto = nombreCompleto.trim(),
-                            cedula = cedula.trim(),
+                            cedula = cedulaLimpia,        // ← Acá se usa
                             correo = correo.trim(),
                             telefono = telefono.trim(),
                             numeroLicencia = if (rol == "CONDUCTOR") licenciaNum.trim() else null,
@@ -439,22 +525,37 @@ fun PantallaRegistro(
 
                         SupabaseManager.client.from("usuarios").insert(perfil)
 
-                        mensaje = "Usuario registrado correctamente"
                         registroExitoso()
                     } catch (e: Exception) {
-                        mensaje = "Error al registrar: ${e.message}"
+                        val texto = e.message ?: ""
+                        mensaje = when {
+                            texto.contains("usuarios_cedula_key") ->
+                                "Ya existe un usuario con esa cédula"
+                            texto.contains("usuarios_correo_key") ->
+                                "Ya existe un usuario con ese correo"
+                            texto.contains("idx_licencia_unica") ->
+                                "Ya existe un usuario con esa licencia"
+                            texto.contains("already registered") ->
+                                "Ese correo ya está registrado"
+                            else -> "Error al registrar: ${e.message}"
+                        }
                     }
                 }
             }
-        ) {
-            Text("Registrar usuario")
-        }
-        Text(
-            text = "¿Ya tienes una cuenta? Regresar a login",
-            color = Color(0xFF2563EB),
-            modifier = Modifier.clickable { volverALogin() }
         )
-        Text(mensaje)
+
+        Box(modifier = Modifier.fillMaxWidth()) {
+            Text(
+                text = "¿Ya tienes una cuenta? Iniciar sesión",
+                fontSize = 14.sp,
+                color = AzulPrimario,
+                modifier = Modifier
+                    .align(Alignment.Center)
+                    .clickable { volverALogin() }
+            )
+        }
+
+        Spacer(Modifier.height(24.dp))
     }
 }
 
@@ -467,10 +568,13 @@ fun PantallaRecuperarCorreo(
 
     var correo by remember { mutableStateOf("") }
     var mensaje by remember { mutableStateOf("") }
+    var enviado by remember { mutableStateOf(false) }
 
     Column(
         modifier = modifier
             .fillMaxSize()
+            .background(FondoApp)
+            .imePadding()
             .padding(24.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
@@ -479,39 +583,67 @@ fun PantallaRecuperarCorreo(
             fontSize = 28.sp,
             fontWeight = FontWeight.Bold
         )
-        Text("Correo electrónico")
-        OutlinedTextField(
-            value = correo,
-            onValueChange = { nuevoTexto -> correo = nuevoTexto }
+        Text(
+            text = "Te enviaremos un enlace para restablecer tu contraseña",
+            fontSize = 14.sp,
+            color = TextoSecundario
         )
-        Button(
-            modifier = Modifier.fillMaxWidth(),
+
+        Spacer(Modifier.height(8.dp))
+
+        CampoTexto(
+            etiqueta = "Correo electrónico",
+            valor = correo,
+            onValorChange = { correo = it },
+            placeholder = "nombre@correo.com",
+            tipoTeclado = KeyboardType.Email
+        )
+
+        if (mensaje.isNotBlank()) {
+            Text(
+                text = mensaje,
+                fontSize = 13.sp,
+                color = if (enviado) TextoSecundario else RojoTexto
+            )
+        }
+
+        Spacer(Modifier.height(4.dp))
+
+        BotonPrimario(
+            texto = "Enviar enlace de recuperación",
             onClick = {
                 scope.launch {
+                    mensaje = ""
                     if (correo.isBlank()) {
                         mensaje = "Debe ingresar el correo"
                         return@launch
                     }
+
                     try {
                         SupabaseManager.client.auth.resetPasswordForEmail(
                             email = correo.trim(),
                             redirectUrl = "transandina://reset-password"
                         )
+                        enviado = true
                         mensaje = "Se envió un enlace de recuperación a tu correo"
                     } catch (e: Exception) {
+                        enviado = false
                         mensaje = "Error al enviar recuperación: ${e.message}"
                     }
                 }
             }
-        ) {
-            Text("Enviar enlace de recuperación")
-        }
-        Text(
-            text = "¿Recordaste tu contraseña? Regresar a login",
-            color = Color(0xFF2563EB),
-            modifier = Modifier.clickable { volverALogin() }
         )
-        Text(mensaje)
+
+        Box(modifier = Modifier.fillMaxWidth()) {
+            Text(
+                text = "Regresar a inicio de sesión",
+                fontSize = 14.sp,
+                color = AzulPrimario,
+                modifier = Modifier
+                    .align(Alignment.Center)
+                    .clickable { volverALogin() }
+            )
+        }
     }
 }
 
@@ -522,66 +654,163 @@ fun PantallaCambiarContrasena(
     volverALogin: () -> Unit
 ) {
     val scope = rememberCoroutineScope()
+
     var contrasena by remember { mutableStateOf("") }
-    var confirmacionContrasena by remember { mutableStateOf("") }
+    var confirmacion by remember { mutableStateOf("") }
+    var verContrasena by remember { mutableStateOf(false) }
     var mensaje by remember { mutableStateOf("") }
+
+    val coinciden = confirmacion.isBlank() || contrasena == confirmacion
 
     Column(
         modifier = modifier
             .fillMaxSize()
-            .padding(24.dp)
+            .background(FondoApp)
+            .verticalScroll(rememberScrollState())
+            .imePadding()
+            .padding(24.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         Text(
             text = "Cambiar contraseña",
             fontSize = 28.sp,
             fontWeight = FontWeight.Bold
         )
-        Text("Ingrese su nueva contraseña")
-        OutlinedTextField(
-            value = contrasena,
-            onValueChange = { nuevoTexto -> contrasena = nuevoTexto },
-            visualTransformation = PasswordVisualTransformation()
-        )
-        Text("Confirme su nueva contraseña")
-        OutlinedTextField(
-            value = confirmacionContrasena,
-            onValueChange = { nuevoTexto -> confirmacionContrasena = nuevoTexto },
-            visualTransformation = PasswordVisualTransformation()
-        )
-        Button(
+
+        Column {
+            Text(
+                text = "Nueva contraseña",
+                fontSize = 13.sp,
+                color = TextoSecundario,
+                modifier = Modifier.padding(bottom = 6.dp)
+            )
+            OutlinedTextField(
+                value = contrasena,
+                onValueChange = { contrasena = it },
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true,
+                shape = RoundedCornerShape(8.dp),
+                visualTransformation = if (verContrasena)
+                    VisualTransformation.None
+                else PasswordVisualTransformation(),
+                trailingIcon = {
+                    IconButton(onClick = { verContrasena = !verContrasena }) {
+                        Icon(
+                            imageVector = if (verContrasena)
+                                Icons.Filled.VisibilityOff
+                            else Icons.Filled.Visibility,
+                            contentDescription = null,
+                            tint = TextoSecundario
+                        )
+                    }
+                },
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = AzulPrimario,
+                    unfocusedBorderColor = Borde,
+                    focusedContainerColor = Superficie,
+                    unfocusedContainerColor = Superficie
+                )
+            )
+            Spacer(Modifier.height(4.dp))
+            Text(
+                text = if (contrasena.isBlank() || contrasena.length >= MIN_CONTRASENA)
+                    "Mínimo $MIN_CONTRASENA caracteres"
+                else
+                    "Faltan ${MIN_CONTRASENA - contrasena.length} caracteres",
+                fontSize = 12.sp,
+                color = if (contrasena.isNotBlank() && contrasena.length < MIN_CONTRASENA)
+                    RojoTexto
+                else
+                    TextoSecundario
+            )
+        }
+
+        Column {
+            Text(
+                text = "Confirmar contraseña",
+                fontSize = 13.sp,
+                color = TextoSecundario,
+                modifier = Modifier.padding(bottom = 6.dp)
+            )
+            OutlinedTextField(
+                value = confirmacion,
+                onValueChange = { confirmacion = it },
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true,
+                shape = RoundedCornerShape(8.dp),
+                isError = !coinciden,
+                visualTransformation = if (verContrasena)
+                    VisualTransformation.None
+                else PasswordVisualTransformation(),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = AzulPrimario,
+                    unfocusedBorderColor = Borde,
+                    errorBorderColor = RojoTexto,
+                    focusedContainerColor = Superficie,
+                    unfocusedContainerColor = Superficie
+                )
+            )
+            if (!coinciden) {
+                Spacer(Modifier.height(4.dp))
+                Text(
+                    text = "Las contraseñas no coinciden",
+                    fontSize = 12.sp,
+                    color = RojoTexto
+                )
+            }
+        }
+
+        if (mensaje.isNotBlank()) {
+            Text(
+                text = mensaje,
+                fontSize = 13.sp,
+                color = RojoTexto
+            )
+        }
+
+        Spacer(Modifier.height(4.dp))
+
+        BotonPrimario(
+            texto = "Cambiar contraseña",
             onClick = {
                 scope.launch {
-                    if (contrasena.isBlank() || confirmacionContrasena.isBlank()) {
+                    mensaje = ""
+
+                    if (contrasena.isBlank() || confirmacion.isBlank()) {
                         mensaje = "Debe ingresar la nueva contraseña dos veces"
                         return@launch
                     }
-                    if (contrasena != confirmacionContrasena) {
+                    if (contrasena != confirmacion) {
                         mensaje = "Las contraseñas no coinciden"
                         return@launch
                     }
-                    if (contrasena.length < 6) {
-                        mensaje = "La contraseña debe tener al menos 6 caracteres"
+                    if (contrasena.length < MIN_CONTRASENA) {
+                        mensaje = "La contraseña debe tener al menos $MIN_CONTRASENA caracteres"
                         return@launch
                     }
+
                     try {
                         SupabaseManager.client.auth.updateUser {
                             password = contrasena
                         }
-                        mensaje = "Se cambió exitosamente la contraseña"
                         cambioExitoso()
                     } catch (e: Exception) {
                         mensaje = "Error al cambiar contraseña: ${e.message}"
                     }
                 }
-            }
-        ) {
-            Text("Cambiar contraseña")
-        }
-        Text(
-            text = "¿Recordaste tu contraseña? Regresar a login",
-            color = Color(0xFF2563EB),
-            modifier = Modifier.clickable { volverALogin() }
+            },
+            habilitado = coinciden
         )
-        Text(mensaje)
+
+        Box(modifier = Modifier.fillMaxWidth()) {
+            Text(
+                text = "Regresar a inicio de sesión",
+                fontSize = 14.sp,
+                color = AzulPrimario,
+                modifier = Modifier
+                    .align(Alignment.Center)
+                    .clickable { volverALogin() }
+            )
+        }
     }
 }

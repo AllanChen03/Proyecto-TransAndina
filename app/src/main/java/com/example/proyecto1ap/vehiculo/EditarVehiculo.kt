@@ -99,7 +99,6 @@ class EditarVehiculo(private val vehiculoId: Long) : ViewModel() {
     fun onTipoVehiculo(v: String) = _state.update { it.copy(tipoVehiculo = v) }
     fun onTipoCombustible(v: String) = _state.update { it.copy(tipoCombustible = v) }
     fun onConductor(id: String?) = _state.update { it.copy(conductorId = id) }
-    fun onEstado(v: String) = _state.update { it.copy(estado = v) }
     fun onVenceMarchamo(v: String) = _state.update { it.copy(vencimientoMarchamo = v) }
     fun onVenceRevision(v: String) = _state.update { it.copy(vencimientoRevisionTecnica = v) }
     fun onVenceSeguro(v: String) = _state.update { it.copy(vencimientoSeguro = v) }
@@ -121,6 +120,11 @@ class EditarVehiculo(private val vehiculoId: Long) : ViewModel() {
                 o.vencimientoMarchamo != s.vencimientoMarchamo ||
                 o.vencimientoRevisionTecnica != s.vencimientoRevisionTecnica ||
                 o.vencimientoSeguro != s.vencimientoSeguro
+    }
+
+    fun onEstado(v: String) = _state.update {
+        if (v != "ACTIVO") it.copy(estado = v, conductorId = null)
+        else it.copy(estado = v)
     }
 
     fun guardar() {

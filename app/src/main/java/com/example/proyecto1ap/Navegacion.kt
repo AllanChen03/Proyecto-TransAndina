@@ -7,6 +7,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import com.example.proyecto1ap.usuario.PantallaCambiarContrasena
+import com.example.proyecto1ap.usuario.PantallaDetalleUsuario
+import com.example.proyecto1ap.usuario.PantallaEditarPerfil
 import com.example.proyecto1ap.usuario.PantallaGestionUsuarios
 import com.example.proyecto1ap.usuario.PantallaHomeConductor
 import com.example.proyecto1ap.usuario.PantallaHomeEncargado
@@ -18,6 +20,7 @@ import com.example.proyecto1ap.usuario.Usuario
 import com.example.proyecto1ap.vehiculo.PantallaFlotilla
 import com.example.proyecto1ap.vehiculo.PantallaVehiculoEditar
 import com.example.proyecto1ap.vehiculo.PantallaVehiculoRegistro
+import com.example.proyecto1ap.vehiculo.PantallaDetalleVehiculo
 
 @Composable
 fun AppPrincipal(
@@ -27,6 +30,8 @@ fun AppPrincipal(
     var pantallaActual by remember { mutableStateOf(pantallaInicial) }
     var usuarioActual by remember { mutableStateOf<Usuario?>(null) }
     var vehiculoSeleccionado by remember { mutableStateOf(0L) }
+    var usuarioSeleccionado by remember { mutableStateOf("") }
+    var pantallaAnterior by remember { mutableStateOf("login") }
 
     when (pantallaActual) {
         "login" -> PantallaInicial(
@@ -63,6 +68,10 @@ fun AppPrincipal(
 
         "homeConductor" -> PantallaHomeConductor(
             usuario = usuarioActual,
+            onEditarPerfil = {
+                pantallaAnterior = "homeConductor"
+                pantallaActual = "editarPerfil"
+            },
             cerrarSesion = {
                 usuarioActual = null
                 pantallaActual = "login"
@@ -71,6 +80,10 @@ fun AppPrincipal(
 
         "homeMecanico" -> PantallaHomeMecanico(
             usuario = usuarioActual,
+            onEditarPerfil = {
+                pantallaAnterior = "homeMecanico"
+                pantallaActual = "editarPerfil"
+            },
             cerrarSesion = {
                 usuarioActual = null
                 pantallaActual = "login"
@@ -81,21 +94,58 @@ fun AppPrincipal(
             usuario = usuarioActual,
             onGestionFlotilla = { pantallaActual = "flotilla" },
             onGestionUsuarios = { pantallaActual = "gestionUsuarios" },
-            cerrarSesion = { usuarioActual = null; pantallaActual = "login" }
+            onEditarPerfil = {
+                pantallaAnterior = "homeEncargado"
+                pantallaActual = "editarPerfil"
+            },
+            cerrarSesion = {
+                usuarioActual = null
+                pantallaActual = "login"
+            }
+        )
+
+        "editarPerfil" -> PantallaEditarPerfil(
+            onVolver = { pantallaActual = pantallaAnterior },
+            modifier = modifier
         )
 
         "gestionUsuarios" -> PantallaGestionUsuarios(
             onVolver = { pantallaActual = "homeEncargado" },
+            onUsuario = { id ->
+                usuarioSeleccionado = id
+                pantallaActual = "detalleUsuario"
+            },
             modifier = modifier
         )
+
+
+        "detalleUsuario" -> PantallaDetalleUsuario(
+            usuarioId = usuarioSeleccionado,
+            onVolver = { pantallaActual = "gestionUsuarios" },
+            modifier = modifier
+        )
+
 
         "flotilla" -> PantallaFlotilla(
             onVolver = { pantallaActual = "homeEncargado" },
             onAgregar = { pantallaActual = "registroVehiculo" },
             onVehiculo = { id ->
                 vehiculoSeleccionado = id
-                pantallaActual = "editarVehiculo"
+                pantallaActual = "detalleVehiculo"
             },
+            modifier = modifier
+        )
+
+        "detalleVehiculo" -> PantallaDetalleVehiculo(
+            vehiculoId = vehiculoSeleccionado,
+            onVolver = { pantallaActual = "flotilla" },
+            onEditar = { pantallaActual = "editarVehiculo" },
+            modifier = modifier
+        )
+
+        "editarVehiculo" -> PantallaVehiculoEditar(
+            vehiculoId = vehiculoSeleccionado,
+            onVolver = { pantallaActual = "detalleVehiculo" },
             modifier = modifier
         )
 

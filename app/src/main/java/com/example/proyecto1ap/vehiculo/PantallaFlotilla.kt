@@ -46,7 +46,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.proyecto1ap.ui.theme.AmarilloTexto
 import com.example.proyecto1ap.ui.theme.AzulPrimario
 import com.example.proyecto1ap.ui.theme.Borde
 import com.example.proyecto1ap.ui.theme.FondoApp
@@ -54,9 +53,6 @@ import com.example.proyecto1ap.ui.theme.RojoTexto
 import com.example.proyecto1ap.ui.theme.Superficie
 import com.example.proyecto1ap.ui.theme.TextoPrincipal
 import com.example.proyecto1ap.ui.theme.TextoSecundario
-import com.example.proyecto1ap.ui.theme.VerdeTexto
-import java.time.LocalDate
-import java.time.temporal.ChronoUnit
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -176,7 +172,8 @@ private fun TarjetaVehiculo(
     vehiculo: VehiculoListado,
     onClick: () -> Unit
 ) {
-    val estado = calcularEstado(vehiculo)
+    val (textoMantenimiento, estadoMantenimiento) = estadoMantenimiento(vehiculo)
+    val (textoDocumentos, estadoDocumentos) = estadoGeneral(vehiculo)
 
     Card(
         modifier = Modifier
@@ -224,63 +221,29 @@ private fun TarjetaVehiculo(
             HorizontalDivider(color = Borde)
             Spacer(Modifier.height(10.dp))
 
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Box(
-                        modifier = Modifier
-                            .size(8.dp)
-                            .clip(CircleShape)
-                            .background(estado.second)
-                    )
-                    Spacer(Modifier.width(8.dp))
-                    Text(
-                        text = estado.first,
-                        fontSize = 13.sp,
-                        color = estado.second
-                    )
-                }
+            IndicadorSemaforo(textoMantenimiento, colorDe(estadoMantenimiento))
 
-                Text(
-                    text = vehiculo.kilometrajeActual
-                        ?.let { "%,d km".format(it) }
-                        ?: "Sin km",
-                    fontSize = 13.sp,
-                    color = TextoSecundario
-                )
-            }
+            Spacer(Modifier.height(6.dp))
+
+            IndicadorSemaforo(textoDocumentos, colorDe(estadoDocumentos))
         }
     }
 }
 
-private fun calcularEstado(v: VehiculoListado): Pair<String, Color> {
-    if (v.estado == "INACTIVO") {
-        return "Fuera de servicio" to TextoSecundario
+@Composable
+private fun IndicadorSemaforo(texto: String, color: Color) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Box(
+            modifier = Modifier
+                .size(8.dp)
+                .clip(CircleShape)
+                .background(color)
+        )
+        Spacer(Modifier.width(8.dp))
+        Text(
+            text = texto,
+            fontSize = 13.sp,
+            color = color
+        )
     }
-
-    val fechas = listOfNotNull(
-        v.vencimientoMarchamo,
-        v.vencimientoRevisionTecnica,
-        v.vencimientoSeguro
-    ).mapNotNull { runCatching { LocalDate.parse(it) }.getOrNull() }
-
-    if (fechas.isEmpty()) {
-        return "Sin documentos" to TextoSecundario
-    }
-
-    val hoy = LocalDate.now()
-    val vencidos = fechas.count { it.isBefore(hoy) }
-    if (vencidos > 0) {
-        return "Documentos vencidos ($vencidos)" to RojoTexto
-    }
-
-    val dias = ChronoUnit.DAYS.between(hoy, fechas.min())
-    if (dias <= 30) {
-        return "Vence en $dias días" to AmarilloTexto
-    }
-
-    return "Al día" to VerdeTexto
 }

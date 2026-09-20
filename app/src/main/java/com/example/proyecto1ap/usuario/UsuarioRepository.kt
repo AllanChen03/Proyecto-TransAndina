@@ -2,6 +2,7 @@ package com.example.proyecto1ap.usuario
 
 import com.example.proyecto1ap.SupabaseManager
 import com.example.proyecto1ap.vehiculo.Vehiculo
+import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.postgrest.from
 
 class UsuarioRepository {
@@ -27,10 +28,6 @@ class UsuarioRepository {
             .filter { it.conductorId == null }
     }
 
-    /**
-     * Asigna un conductor a un vehículo. Primero lo libera de cualquier otro
-     * vehículo, porque un conductor maneja solo uno.
-     */
     suspend fun asignarVehiculo(conductorId: String, vehiculoId: Long?): Result<Unit> = runCatching {
         SupabaseManager.client.from("vehiculos").update(
             mapOf("conductor_id" to null)
@@ -44,6 +41,28 @@ class UsuarioRepository {
             ) {
                 filter { eq("id", vehiculoId) }
             }
+        }
+    }
+
+    suspend fun detalle(id: String): Result<UsuarioListado> = runCatching {
+        SupabaseManager.client.from("usuarios_listado").select {
+            filter { eq("id", id) }
+        }.decodeSingle<UsuarioListado>()
+    }
+
+    suspend fun miPerfil(): Result<Usuario> = runCatching {
+        val id = SupabaseManager.client.auth.currentUserOrNull()?.id
+            ?: error("No hay sesión activa")
+        SupabaseManager.client.from("usuarios").select {
+            filter { eq("id", id) }
+        }.decodeSingle<Usuario>()
+    }
+
+    suspend fun actualizarPerfil(datos: PerfilEditable): Result<Unit> = runCatching {
+        val id = SupabaseManager.client.auth.currentUserOrNull()?.id
+            ?: error("No hay sesión activa")
+        SupabaseManager.client.from("usuarios").update(datos) {
+            filter { eq("id", id) }
         }
     }
 }

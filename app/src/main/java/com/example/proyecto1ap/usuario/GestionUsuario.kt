@@ -65,14 +65,15 @@ class GestionUsuarios : ViewModel() {
         viewModelScope.launch {
             repo.cambiarEstado(usuario.id, nuevoEstado)
                 .onSuccess {
-                    _state.update { st ->
-                        st.copy(
-                            usuarios = st.usuarios.map {
-                                if (it.id == usuario.id) it.copy(estado = nuevoEstado) else it
-                            },
-                            mensaje = "Cuenta ${nuevoEstado.lowercase()}"
+                    _state.update {
+                        it.copy(
+                            mensaje = if (nuevoEstado == "ACTIVO")
+                                "Cuenta activada"
+                            else
+                                "Cuenta ${nuevoEstado.lowercase()}. El vehículo quedó libre."
                         )
                     }
+                    cargar()
                 }
                 .onFailure { e ->
                     _state.update { it.copy(mensaje = "Error: ${e.message}") }

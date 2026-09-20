@@ -1,6 +1,7 @@
 package com.example.proyecto1ap.usuario
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -61,6 +62,7 @@ import com.example.proyecto1ap.ui.theme.TextoSecundario
 @Composable
 fun PantallaGestionUsuarios(
     onVolver: () -> Unit = {},
+    onUsuario: (String) -> Unit = {},
     modifier: Modifier = Modifier,
     vm: GestionUsuarios = viewModel()
 ) {
@@ -125,7 +127,6 @@ fun PantallaGestionUsuarios(
                     null to "Todos",
                     "CONDUCTOR" to "Conductores",
                     "MECANICO" to "Mecánicos",
-                    "ENCARGADO" to "Encargados"
                 ).forEach { (valor, etiqueta) ->
                     FilterChip(
                         selected = s.filtroRol == valor,
@@ -151,6 +152,7 @@ fun PantallaGestionUsuarios(
                     items(s.usuariosFiltrados, key = { it.id }) { usuario ->
                         TarjetaUsuario(
                             usuario = usuario,
+                            onAbrir = { onUsuario(usuario.id) },
                             onCambiarEstado = { nuevo -> vm.cambiarEstado(usuario, nuevo) },
                             onAsignarVehiculo = { vm.abrirAsignacion(usuario) }
                         )
@@ -164,6 +166,7 @@ fun PantallaGestionUsuarios(
 @Composable
 private fun TarjetaUsuario(
     usuario: UsuarioListado,
+    onAbrir: () -> Unit,
     onCambiarEstado: (String) -> Unit,
     onAsignarVehiculo: () -> Unit
 ) {
@@ -191,7 +194,7 @@ private fun TarjetaUsuario(
     }
 
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth() .clickable { onAbrir() },
         colors = CardDefaults.cardColors(containerColor = Superficie),
         shape = RoundedCornerShape(12.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
@@ -239,25 +242,31 @@ private fun TarjetaUsuario(
             }
 
             if (usuario.rol == "CONDUCTOR") {
-                Spacer(Modifier.height(10.dp))
+                Spacer(Modifier.height(12.dp))
                 HorizontalDivider(color = Borde)
                 Spacer(Modifier.height(10.dp))
 
                 Row(
-                    Modifier.fillMaxWidth(),
+                    modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Column {
-                        Text("Vehículo asignado", fontSize = 12.sp, color = TextoSecundario)
+                        Text(
+                            "Vehículo asignado",
+                            fontSize = 12.sp,
+                            color = TextoSecundario
+                        )
                         Text(
                             usuario.vehiculoPlaca ?: "Ninguno",
                             fontSize = 14.sp,
                             fontWeight = FontWeight.SemiBold
                         )
                     }
-                    TextButton(onClick = onAsignarVehiculo) {
-                        Text("Cambiar", color = AzulPrimario, fontSize = 13.sp)
+                    if (usuario.estado == "ACTIVO") {
+                        TextButton(onClick = onAsignarVehiculo) {
+                            Text("Cambiar", color = AzulPrimario, fontSize = 13.sp)
+                        }
                     }
                 }
             }

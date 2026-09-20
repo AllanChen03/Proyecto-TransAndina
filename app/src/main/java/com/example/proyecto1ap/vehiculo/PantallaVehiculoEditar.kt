@@ -44,6 +44,7 @@ import com.example.proyecto1ap.ui.componentes.CampoSelector
 import com.example.proyecto1ap.ui.componentes.CampoTexto
 import com.example.proyecto1ap.ui.theme.Borde
 import com.example.proyecto1ap.ui.theme.RojoTexto
+import com.example.proyecto1ap.ui.theme.TextoSecundario
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -51,7 +52,10 @@ fun PantallaVehiculoEditar(
     vehiculoId: Long,
     onVolver: () -> Unit = {},
     modifier: Modifier = Modifier,
-    vm: EditarVehiculo = viewModel(factory = EditarVehiculoFactory(vehiculoId))
+    vm: EditarVehiculo = viewModel(
+        key = vehiculoId.toString(),
+        factory = EditarVehiculoFactory(vehiculoId)
+    )
 ) {
     val s by vm.state.collectAsState()
     val snackbar = remember { SnackbarHostState() }
@@ -136,6 +140,8 @@ fun PantallaVehiculoEditar(
             verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
 
+            // ---------- Datos generales ----------
+
             CampoTexto("Placa", s.placa, vm::onPlaca)
             CampoTexto("Marca", s.marca, vm::onMarca)
             CampoTexto("Modelo", s.modelo, vm::onModelo)
@@ -170,15 +176,7 @@ fun PantallaVehiculoEditar(
                 tipoTeclado = KeyboardType.Number
             )
 
-            CampoSelector(
-                etiqueta = "Conductor asignado",
-                valorSeleccionado = s.conductores.find { it.id == s.conductorId }?.nombreCompleto,
-                opciones = s.conductores.map { it.nombreCompleto },
-                onSeleccion = { nombre ->
-                    vm.onConductor(s.conductores.first { it.nombreCompleto == nombre }.id)
-                },
-                placeholder = "Sin conductor asignado"
-            )
+            // ---------- Documentos legales ----------
 
             Spacer(Modifier.height(4.dp))
             HorizontalDivider(color = Borde)
@@ -212,6 +210,8 @@ fun PantallaVehiculoEditar(
             HorizontalDivider(color = Borde)
             Spacer(Modifier.height(4.dp))
 
+            // ---------- Estado y conductor ----------
+
             CampoSelector(
                 etiqueta = "Estado",
                 valorSeleccionado = ESTADOS.find { it.first == s.estado }?.second,
@@ -221,6 +221,35 @@ fun PantallaVehiculoEditar(
                 },
                 placeholder = "Seleccionar estado"
             )
+
+            if (s.estado == "ACTIVO") {
+                CampoSelector(
+                    etiqueta = "Conductor asignado",
+                    valorSeleccionado = s.conductores
+                        .find { it.id == s.conductorId }?.nombreCompleto,
+                    opciones = s.conductores.map { it.nombreCompleto },
+                    onSeleccion = { nombre ->
+                        vm.onConductor(s.conductores.first { it.nombreCompleto == nombre }.id)
+                    },
+                    placeholder = "Sin conductor asignado"
+                )
+            } else {
+                Column {
+                    Text(
+                        text = "Conductor asignado",
+                        fontSize = 13.sp,
+                        color = TextoSecundario
+                    )
+                    Spacer(Modifier.height(4.dp))
+                    Text(
+                        text = "Un vehículo inactivo no puede tener conductor asignado",
+                        fontSize = 13.sp,
+                        color = TextoSecundario
+                    )
+                }
+            }
+
+            // ---------- Guardar ----------
 
             Spacer(Modifier.height(8.dp))
 
