@@ -7,6 +7,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import com.example.proyecto1ap.usuario.PantallaCambiarContrasena
+import com.example.proyecto1ap.usuario.PantallaEditarPerfil
 import com.example.proyecto1ap.usuario.PantallaGestionUsuarios
 import com.example.proyecto1ap.usuario.PantallaHomeConductor
 import com.example.proyecto1ap.usuario.PantallaHomeEncargado
@@ -22,6 +23,16 @@ import com.example.proyecto1ap.kilometraje.PantallaRegistrarKilometraje
 import com.example.proyecto1ap.kilometraje.PantallaHistorialKilometraje
 import com.example.proyecto1ap.alertas.PantallaCentroAlertas
 import com.example.proyecto1ap.reportes.PantallaReportes
+
+private fun pantallaHomePorRol(rol: String): String {
+    return when (rol.trim().uppercase()) {
+        "CONDUCTOR" -> "homeConductor"
+        "MECANICO" -> "homeMecanico"
+        "ENCARGADO" -> "homeEncargado"
+        else -> "login"
+    }
+}
+
 @Composable
 fun AppPrincipal(
     modifier: Modifier = Modifier,
@@ -41,12 +52,7 @@ fun AppPrincipal(
             irARecuperarCorreo = { pantallaActual = "recuperarCorreo" },
             irAHomePorRol = { usuario ->
                 usuarioActual = usuario
-                pantallaActual = when (usuario.rol.trim().uppercase()) {
-                    "CONDUCTOR" -> "homeConductor"
-                    "MECANICO" -> "homeMecanico"
-                    "ENCARGADO" -> "homeEncargado"
-                    else -> "login"
-                }
+                pantallaActual = pantallaHomePorRol(usuario.rol)
             }
         )
 
@@ -76,6 +82,7 @@ fun AppPrincipal(
                 pantallaActual = "historialKilometraje"
             },
             onAlertas = { alertasVolver = "homeConductor"; pantallaActual = "centroAlertas" },
+            onEditarPerfil = { pantallaActual = "editarPerfil" },
             cerrarSesion = {
                 usuarioActual = null
                 pantallaActual = "login"
@@ -86,6 +93,7 @@ fun AppPrincipal(
         "homeMecanico" -> PantallaHomeMecanico(
             usuario = usuarioActual,
             onAlertas = { alertasVolver = "homeMecanico"; pantallaActual = "centroAlertas" },
+            onEditarPerfil = { pantallaActual = "editarPerfil" },
             cerrarSesion = {
                 usuarioActual = null
                 pantallaActual = "login"
@@ -99,8 +107,21 @@ fun AppPrincipal(
             onGestionUsuarios = { pantallaActual = "gestionUsuarios" },
             onAlertas = { alertasVolver = "homeEncargado"; pantallaActual = "centroAlertas" },
             onReportes = { pantallaActual = "reportes" },
+            onEditarPerfil = { pantallaActual = "editarPerfil" },
             cerrarSesion = { usuarioActual = null; pantallaActual = "login" }
         )
+
+        "editarPerfil" -> usuarioActual?.let { usuario ->
+            PantallaEditarPerfil(
+                usuario = usuario,
+                onPerfilActualizado = { actualizado ->
+                    usuarioActual = actualizado
+                    pantallaActual = pantallaHomePorRol(actualizado.rol)
+                },
+                onVolver = { pantallaActual = pantallaHomePorRol(usuario.rol) },
+                modifier = modifier
+            )
+        }
 
         "gestionUsuarios" -> PantallaGestionUsuarios(
             onVolver = { pantallaActual = "homeEncargado" },

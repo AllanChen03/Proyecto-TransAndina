@@ -20,6 +20,14 @@ class UsuarioRepository {
         }
     }
 
+    suspend fun cambiarCalificacion(id: String, calificacion: Double?): Result<Unit> = runCatching {
+        SupabaseManager.client.from("usuarios").update(
+            mapOf("calificacion" to calificacion)
+        ) {
+            filter { eq("id", id) }
+        }
+    }
+
     suspend fun vehiculosDisponibles(): Result<List<Vehiculo>> = runCatching {
         SupabaseManager.client.from("vehiculos").select {
             filter { eq("estado", "ACTIVO") }

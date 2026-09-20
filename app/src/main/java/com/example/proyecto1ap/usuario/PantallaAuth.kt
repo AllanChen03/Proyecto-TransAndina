@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Visibility
@@ -324,22 +325,35 @@ fun PantallaRegistro(
         Text("Nombre completo")
         OutlinedTextField(
             value = nombreCompleto,
-            onValueChange = { nuevoTexto -> nombreCompleto = nuevoTexto }
+            onValueChange = { nuevoTexto ->
+                nombreCompleto = soloLetrasEspacios(nuevoTexto)
+            },
+            singleLine = true
         )
         Text("Cédula")
         OutlinedTextField(
             value = cedula,
-            onValueChange = { nuevoTexto -> cedula = nuevoTexto }
+            onValueChange = { nuevoTexto ->
+                cedula = soloNumeros(nuevoTexto, LARGO_CEDULA_USUARIO)
+            },
+            singleLine = true,
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
         )
         Text("Correo electrónico")
         OutlinedTextField(
             value = correo,
-            onValueChange = { nuevoTexto -> correo = nuevoTexto }
+            onValueChange = { nuevoTexto -> correo = nuevoTexto },
+            singleLine = true,
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email)
         )
         Text("Teléfono")
         OutlinedTextField(
             value = telefono,
-            onValueChange = { nuevoTexto -> telefono = nuevoTexto }
+            onValueChange = { nuevoTexto ->
+                telefono = soloNumeros(nuevoTexto, LARGO_TELEFONO_USUARIO)
+            },
+            singleLine = true,
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
         )
         Text("Rol")
         ExposedDropdownMenuBox(
@@ -376,41 +390,38 @@ fun PantallaRegistro(
             Text("Número de licencia")
             OutlinedTextField(
                 value = licenciaNum,
-                onValueChange = { nuevoTexto -> licenciaNum = nuevoTexto }
+                onValueChange = { nuevoTexto -> licenciaNum = nuevoTexto },
+                singleLine = true
             )
         }
         Text("Contraseña")
         OutlinedTextField(
             value = contrasena,
             onValueChange = { nuevoTexto -> contrasena = nuevoTexto },
+            singleLine = true,
             visualTransformation = PasswordVisualTransformation()
         )
         Button(
             modifier = Modifier.fillMaxWidth(),
             onClick = {
                 scope.launch {
-                    if (nombreCompleto.isBlank()) {
-                        mensaje = "Debe ingresar el nombre completo"
+                    val errorDatos = validarDatosUsuario(
+                        nombreCompleto = nombreCompleto,
+                        cedula = cedula,
+                        correo = correo,
+                        telefono = telefono,
+                        rol = rol,
+                        numeroLicencia = licenciaNum
+                    )
+
+                    if (errorDatos != null) {
+                        mensaje = errorDatos
                         return@launch
                     }
-                    if (cedula.isBlank()) {
-                        mensaje = "Debe ingresar la cédula"
-                        return@launch
-                    }
-                    if (correo.isBlank()) {
-                        mensaje = "Debe ingresar el correo"
-                        return@launch
-                    }
-                    if (telefono.isBlank()) {
-                        mensaje = "Debe ingresar el teléfono"
-                        return@launch
-                    }
-                    if (contrasena.isBlank()) {
-                        mensaje = "Debe ingresar la contraseña"
-                        return@launch
-                    }
-                    if (rol == "CONDUCTOR" && licenciaNum.isBlank()) {
-                        mensaje = "Debe ingresar el número de licencia"
+
+                    val errorContrasena = validarContrasenaRegistro(contrasena)
+                    if (errorContrasena != null) {
+                        mensaje = errorContrasena
                         return@launch
                     }
 

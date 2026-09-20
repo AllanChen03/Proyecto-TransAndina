@@ -12,13 +12,24 @@ data class GestionUsuariosState(
     val usuarios: List<UsuarioListado> = emptyList(),
     val vehiculos: List<Vehiculo> = emptyList(),
     val filtroRol: String? = null,
+    val busquedaCedula: String = "",
     val cargando: Boolean = true,
     val mensaje: String? = null,
-    val usuarioParaAsignar: UsuarioListado? = null
+    val usuarioParaAsignar: UsuarioListado? = null,
+    val usuarioParaCalificar: UsuarioListado? = null
 ) {
     val usuariosFiltrados: List<UsuarioListado>
-        get() = if (filtroRol == null) usuarios
-        else usuarios.filter { it.rol == filtroRol }
+        get() {
+            val porRol = if (filtroRol == null) usuarios
+            else usuarios.filter { it.rol == filtroRol }
+
+            val textoBusqueda = busquedaCedula.trim()
+            return if (textoBusqueda.isBlank()) {
+                porRol
+            } else {
+                porRol.filter { it.cedula.contains(textoBusqueda, ignoreCase = true) }
+            }
+        }
 }
 
 class GestionUsuarios : ViewModel() {
@@ -53,6 +64,7 @@ class GestionUsuarios : ViewModel() {
     }
 
     fun onFiltro(rol: String?) = _state.update { it.copy(filtroRol = rol) }
+    fun onBusquedaCedula(valor: String) = _state.update { it.copy(busquedaCedula = valor) }
     fun limpiarMensaje() = _state.update { it.copy(mensaje = null) }
 
     fun abrirAsignacion(usuario: UsuarioListado) =
@@ -60,6 +72,12 @@ class GestionUsuarios : ViewModel() {
 
     fun cerrarAsignacion() =
         _state.update { it.copy(usuarioParaAsignar = null) }
+
+    fun abrirCalificacion(usuario: UsuarioListado) =
+        _state.update { it.copy(usuarioParaCalificar = usuario) }
+
+    fun cerrarCalificacion() =
+        _state.update { it.copy(usuarioParaCalificar = null) }
 
     fun cambiarEstado(usuario: UsuarioListado, nuevoEstado: String) {
         viewModelScope.launch {
@@ -86,6 +104,30 @@ class GestionUsuarios : ViewModel() {
                 .onSuccess {
                     _state.update { it.copy(usuarioParaAsignar = null, mensaje = "Asignación actualizada") }
                     cargar()
+                }
+                .onFailure { e ->
+                    _state.update { it.copy(mensaje = "Error: ${e.message}") }
+                }
+        }
+    }
+
+    fun cambiarCalificacion(usuario: UsuarioListado, calificacion: Double?) {
+        viewModelScope.launch {
+            repo.cambiarCalificacion(usuario.id, calificacion)
+                .onSuccess {
+                    _state.update { st ->
+                        st.copy(
+                            usuarioParaCalificar = null,
+                            usuarios = st.usuarios.map {
+                                if (it.id == usuario.id) {
+                                    it.copy(calificacion = calificacion)
+                                } else {
+                                    it
+                                }
+                            },
+                            mensaje = "Calificación actualizada"
+                        )
+                    }
                 }
                 .onFailure { e ->
                     _state.update { it.copy(mensaje = "Error: ${e.message}") }
