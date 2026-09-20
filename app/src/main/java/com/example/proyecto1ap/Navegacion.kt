@@ -20,6 +20,7 @@ import com.example.proyecto1ap.Vehiculo.PantallaVehiculoEditar
 import com.example.proyecto1ap.Vehiculo.PantallaVehiculoRegistro
 import com.example.proyecto1ap.kilometraje.PantallaRegistrarKilometraje
 import com.example.proyecto1ap.kilometraje.PantallaHistorialKilometraje
+import com.example.proyecto1ap.alertas.PantallaCentroAlertas
 
 @Composable
 fun AppPrincipal(
@@ -31,6 +32,7 @@ fun AppPrincipal(
     var vehiculoSeleccionado by remember { mutableStateOf(0L) }
     var historialVehiculoId by remember { mutableStateOf<Long?>(null) }
     var historialVolver by remember { mutableStateOf("homeConductor") }
+    var alertasVolver by remember { mutableStateOf("homeConductor") }
 
     when (pantallaActual) {
         "login" -> PantallaInicial(
@@ -73,6 +75,7 @@ fun AppPrincipal(
                 historialVolver = "homeConductor"
                 pantallaActual = "historialKilometraje"
             },
+            onAlertas = { alertasVolver = "homeConductor"; pantallaActual = "centroAlertas" },
             cerrarSesion = {
                 usuarioActual = null
                 pantallaActual = "login"
@@ -82,16 +85,19 @@ fun AppPrincipal(
 
         "homeMecanico" -> PantallaHomeMecanico(
             usuario = usuarioActual,
+            onAlertas = { alertasVolver = "homeMecanico"; pantallaActual = "centroAlertas" },
             cerrarSesion = {
                 usuarioActual = null
                 pantallaActual = "login"
             }
+
         )
 
         "homeEncargado" -> PantallaHomeEncargado(
             usuario = usuarioActual,
             onGestionFlotilla = { pantallaActual = "flotilla" },
             onGestionUsuarios = { pantallaActual = "gestionUsuarios" },
+            onAlertas = { alertasVolver = "homeEncargado"; pantallaActual = "centroAlertas" },
             cerrarSesion = { usuarioActual = null; pantallaActual = "login" }
         )
 
@@ -141,6 +147,13 @@ fun AppPrincipal(
             vehiculoId = historialVehiculoId,
             conductorId = usuarioActual?.id,
             onVolver = { pantallaActual = historialVolver },
+            modifier = modifier
+        )
+        "centroAlertas" -> PantallaCentroAlertas(
+            conductorId = usuarioActual
+                ?.takeIf { it.rol.trim().uppercase() == "CONDUCTOR" }
+                ?.id,
+            onVolver = { pantallaActual = alertasVolver },
             modifier = modifier
         )
     }
