@@ -1,4 +1,4 @@
-package com.example.proyecto1ap.vehiculo
+package com.example.proyecto1ap.Vehiculo
 
 import com.example.proyecto1ap.SupabaseManager
 import com.example.proyecto1ap.usuario.Usuario

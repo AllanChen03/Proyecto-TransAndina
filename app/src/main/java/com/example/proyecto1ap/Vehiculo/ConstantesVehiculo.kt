@@ -1,4 +1,4 @@
-package com.example.proyecto1ap.vehiculo
+package com.example.proyecto1ap.Vehiculo
 
 val TIPOS_VEHICULO = listOf(
     "LIVIANO" to "Liviano",

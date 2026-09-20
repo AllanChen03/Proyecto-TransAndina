@@ -15,9 +15,10 @@ import com.example.proyecto1ap.usuario.PantallaInicial
 import com.example.proyecto1ap.usuario.PantallaRecuperarCorreo
 import com.example.proyecto1ap.usuario.PantallaRegistro
 import com.example.proyecto1ap.usuario.Usuario
-import com.example.proyecto1ap.vehiculo.PantallaFlotilla
-import com.example.proyecto1ap.vehiculo.PantallaVehiculoEditar
-import com.example.proyecto1ap.vehiculo.PantallaVehiculoRegistro
+import com.example.proyecto1ap.Vehiculo.PantallaFlotilla
+import com.example.proyecto1ap.Vehiculo.PantallaVehiculoEditar
+import com.example.proyecto1ap.Vehiculo.PantallaVehiculoRegistro
+import com.example.proyecto1ap.kilometraje.PantallaRegistrarKilometraje
 
 @Composable
 fun AppPrincipal(
@@ -63,6 +64,7 @@ fun AppPrincipal(
 
         "homeConductor" -> PantallaHomeConductor(
             usuario = usuarioActual,
+            onRegistrarKilometraje = { pantallaActual = "registrarKilometraje" },
             cerrarSesion = {
                 usuarioActual = null
                 pantallaActual = "login"
@@ -110,5 +112,13 @@ fun AppPrincipal(
             onVolver = { pantallaActual = "flotilla" },
             modifier = modifier
         )
+        "registrarKilometraje" -> usuarioActual?.let { u ->
+            PantallaRegistrarKilometraje(
+                conductorId = u.id,
+                onVolver = { pantallaActual = "homeConductor" },
+                onGuardado = { pantallaActual = "homeConductor" },
+                modifier = modifier
+            )
+        }
     }
 }

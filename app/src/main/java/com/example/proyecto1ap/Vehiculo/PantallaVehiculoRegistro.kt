@@ -1,4 +1,4 @@
-package com.example.proyecto1ap.vehiculo
+package com.example.proyecto1ap.Vehiculo
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement

@@ -1,4 +1,4 @@
-package com.example.proyecto1ap.vehiculo
+package com.example.proyecto1ap.Vehiculo
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
