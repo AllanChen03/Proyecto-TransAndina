@@ -10,11 +10,15 @@ import kotlinx.coroutines.launch
 
 data class CentroAlertasState(
     val alertas: List<AlertaCalculada> = emptyList(),
+    val notificaciones: List<NotificacionFila> = emptyList(),
     val cargando: Boolean = true,
     val error: String? = null
 )
 
-class CentroAlertas(private val conductorId: String?) : ViewModel() {
+class CentroAlertas(
+    private val conductorId: String?,
+    private val usuarioId: String?
+) : ViewModel() {
 
     private val repo = AlertasRepository()
 
@@ -29,10 +33,15 @@ class CentroAlertas(private val conductorId: String?) : ViewModel() {
         viewModelScope.launch {
             _state.update { it.copy(cargando = true, error = null) }
             val config = repo.configuracion()
+            val notificaciones = usuarioId?.let { repo.notificaciones(it) } ?: emptyList()
             repo.vehiculos(conductorId)
                 .onSuccess { lista ->
                     _state.update {
-                        it.copy(alertas = calcularAlertas(lista, config), cargando = false)
+                        it.copy(
+                            alertas = calcularAlertas(lista, config),
+                            notificaciones = notificaciones,
+                            cargando = false
+                        )
                     }
                 }
                 .onFailure { e ->
@@ -44,9 +53,12 @@ class CentroAlertas(private val conductorId: String?) : ViewModel() {
     }
 }
 
-class CentroAlertasFactory(private val conductorId: String?) : ViewModelProvider.Factory {
+class CentroAlertasFactory(
+    private val conductorId: String?,
+    private val usuarioId: String?
+) : ViewModelProvider.Factory {
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        return CentroAlertas(conductorId) as T
+        return CentroAlertas(conductorId, usuarioId) as T
     }
 }

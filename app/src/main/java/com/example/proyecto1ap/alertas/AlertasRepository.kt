@@ -3,7 +3,9 @@ package com.example.proyecto1ap.alertas
 import com.example.proyecto1ap.SupabaseManager
 import com.example.proyecto1ap.Vehiculo.VehiculoListado
 import io.github.jan.supabase.postgrest.from
-
+import io.github.jan.supabase.postgrest.query.Order
+import java.time.Instant
+import java.time.temporal.ChronoUnit
 class AlertasRepository {
 
     /** Si falla o no existe la tabla, se usan los valores por defecto. */
@@ -23,4 +25,15 @@ class AlertasRepository {
             }
         }.decodeList<VehiculoListado>()
     }
+    suspend fun notificaciones(usuarioId: String): List<NotificacionFila> =
+        runCatching {
+            val desde = Instant.now().minus(7, ChronoUnit.DAYS).toString()
+            SupabaseManager.client.from("alertas").select {
+                filter {
+                    eq("usuario_id", usuarioId)
+                    gte("created_at", desde)
+                }
+                order("created_at", Order.DESCENDING)
+            }.decodeList<NotificacionFila>()
+        }.getOrDefault(emptyList())
 }

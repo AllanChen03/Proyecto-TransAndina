@@ -83,3 +83,13 @@ fun calcularAlertas(
 
     return resultado.sortedWith(compareBy({ it.severidad }, { it.placa }))
 }
+@Serializable
+data class NotificacionFila(
+    val id: Long,
+    @SerialName("vehiculo_id") val vehiculoId: Long,
+    val tipo: String,
+    val titulo: String,
+    val mensaje: String,
+    val prioridad: String,
+    @SerialName("created_at") val createdAt: String
+)

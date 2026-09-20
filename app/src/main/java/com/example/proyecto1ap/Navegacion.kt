@@ -153,6 +153,7 @@ fun AppPrincipal(
             conductorId = usuarioActual
                 ?.takeIf { it.rol.trim().uppercase() == "CONDUCTOR" }
                 ?.id,
+            usuarioId = usuarioActual?.id,
             onVolver = { pantallaActual = alertasVolver },
             modifier = modifier
         )

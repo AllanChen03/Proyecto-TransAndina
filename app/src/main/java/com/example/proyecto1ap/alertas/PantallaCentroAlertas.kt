@@ -52,11 +52,12 @@ import java.util.UUID
 @Composable
 fun PantallaCentroAlertas(
     conductorId: String?,
+    usuarioId: String?,
     onVolver: () -> Unit = {},
     modifier: Modifier = Modifier,
     vm: CentroAlertas = viewModel(
         key = remember { UUID.randomUUID().toString() },
-        factory = CentroAlertasFactory(conductorId)
+        factory = CentroAlertasFactory(conductorId, usuarioId)
     )
 ) {
     val s by vm.state.collectAsState()
@@ -112,6 +113,10 @@ fun PantallaCentroAlertas(
                     if (documentos.isNotEmpty()) {
                         TituloSeccion("DOCUMENTOS POR VENCER")
                         documentos.forEach { TarjetaAlerta(it) }
+                    }
+                    if (s.notificaciones.isNotEmpty()) {
+                        TituloSeccion("NOTIFICACIONES RECIENTES")
+                        s.notificaciones.forEach { TarjetaNotificacion(it) }
                     }
                 }
             }
@@ -196,6 +201,31 @@ private fun TarjetaAlerta(alerta: AlertaCalculada) {
                 )
                 Text(alerta.detalle, fontSize = 13.sp, color = TextoSecundario)
             }
+        }
+    }
+}
+@Composable
+private fun TarjetaNotificacion(n: NotificacionFila) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = Superficie),
+        shape = RoundedCornerShape(10.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+    ) {
+        Column(modifier = Modifier.padding(14.dp)) {
+            Text(
+                n.titulo,
+                fontSize = 14.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = TextoPrincipal
+            )
+            Text(n.mensaje, fontSize = 13.sp, color = TextoSecundario)
+            Text(
+                n.createdAt.take(10),
+                fontSize = 12.sp,
+                color = TextoSecundario,
+                modifier = Modifier.padding(top = 4.dp)
+            )
         }
     }
 }
