@@ -21,7 +21,7 @@ import com.example.proyecto1ap.Vehiculo.PantallaVehiculoRegistro
 import com.example.proyecto1ap.kilometraje.PantallaRegistrarKilometraje
 import com.example.proyecto1ap.kilometraje.PantallaHistorialKilometraje
 import com.example.proyecto1ap.alertas.PantallaCentroAlertas
-
+import com.example.proyecto1ap.reportes.PantallaReportes
 @Composable
 fun AppPrincipal(
     modifier: Modifier = Modifier,
@@ -98,6 +98,7 @@ fun AppPrincipal(
             onGestionFlotilla = { pantallaActual = "flotilla" },
             onGestionUsuarios = { pantallaActual = "gestionUsuarios" },
             onAlertas = { alertasVolver = "homeEncargado"; pantallaActual = "centroAlertas" },
+            onReportes = { pantallaActual = "reportes" },
             cerrarSesion = { usuarioActual = null; pantallaActual = "login" }
         )
 
@@ -155,6 +156,10 @@ fun AppPrincipal(
                 ?.id,
             usuarioId = usuarioActual?.id,
             onVolver = { pantallaActual = alertasVolver },
+            modifier = modifier
+        )
+        "reportes" -> PantallaReportes(
+            onVolver = { pantallaActual = "homeEncargado" },
             modifier = modifier
         )
     }

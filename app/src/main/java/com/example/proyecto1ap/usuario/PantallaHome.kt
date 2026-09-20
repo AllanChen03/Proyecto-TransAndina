@@ -191,6 +191,7 @@ fun PantallaHomeEncargado(
     usuario: Usuario?,
     onGestionFlotilla: () -> Unit = {},
     onGestionUsuarios: () -> Unit = {},
+    onReportes: () -> Unit = {},
     onAlertas: () -> Unit = {},
     onEditarPerfil: () -> Unit = {},
     cerrarSesion: () -> Unit
@@ -200,6 +201,7 @@ fun PantallaHomeEncargado(
         opciones = listOf(
             OpcionMenu("Gestión de flotilla", onGestionFlotilla),
             OpcionMenu("Gestión de usuarios", onGestionUsuarios),
+            OpcionMenu("Reportes de mantenimiento", onReportes),
             OpcionMenu("Editar perfil", onEditarPerfil)
         ),
         onAlertas = onAlertas,
