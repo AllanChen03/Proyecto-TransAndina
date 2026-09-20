@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.AlertDialog
@@ -27,6 +28,7 @@ import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -45,6 +47,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -57,6 +60,10 @@ import com.example.proyecto1ap.ui.theme.RojoTexto
 import com.example.proyecto1ap.ui.theme.Superficie
 import com.example.proyecto1ap.ui.theme.TextoPrincipal
 import com.example.proyecto1ap.ui.theme.TextoSecundario
+
+private fun formatoCalificacionUsuario(calificacion: Double?): String {
+    return calificacion?.let { "%.1f / 5".format(it) } ?: "Sin calificación"
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -82,6 +89,14 @@ fun PantallaGestionUsuarios(
             vehiculos = s.vehiculos,
             onAsignar = { vehiculoId -> vm.asignarVehiculo(usuario.id, vehiculoId) },
             onCerrar = vm::cerrarAsignacion
+        )
+    }
+
+    s.usuarioParaCalificar?.let { usuario ->
+        DialogoCalificarUsuario(
+            usuario = usuario,
+            onCalificar = { calificacion -> vm.cambiarCalificacion(usuario, calificacion) },
+            onCerrar = vm::cerrarCalificacion
         )
     }
 
@@ -140,6 +155,18 @@ fun PantallaGestionUsuarios(
                 }
             }
 
+            OutlinedTextField(
+                value = s.busquedaCedula,
+                onValueChange = vm::onBusquedaCedula,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(Color.White)
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                label = { Text("Buscar por cédula") },
+                singleLine = true,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+            )
+
             if (s.cargando) {
                 Box(Modifier.fillMaxSize(), Alignment.Center) {
                     CircularProgressIndicator()
@@ -154,7 +181,8 @@ fun PantallaGestionUsuarios(
                             usuario = usuario,
                             onAbrir = { onUsuario(usuario.id) },
                             onCambiarEstado = { nuevo -> vm.cambiarEstado(usuario, nuevo) },
-                            onAsignarVehiculo = { vm.abrirAsignacion(usuario) }
+                            onAsignarVehiculo = { vm.abrirAsignacion(usuario) },
+                            onCalificar = { vm.abrirCalificacion(usuario) }
                         )
                     }
                 }
@@ -168,7 +196,8 @@ private fun TarjetaUsuario(
     usuario: UsuarioListado,
     onAbrir: () -> Unit,
     onCambiarEstado: (String) -> Unit,
-    onAsignarVehiculo: () -> Unit
+    onAsignarVehiculo: () -> Unit,
+    onCalificar: () -> Unit
 ) {
     var mostrarConfirmacion by remember { mutableStateOf<String?>(null) }
 
@@ -212,6 +241,11 @@ private fun TarjetaUsuario(
                     Spacer(Modifier.height(2.dp))
                     Text(usuario.correo, fontSize = 13.sp, color = TextoSecundario)
                     Text("Cédula: ${usuario.cedula}", fontSize = 13.sp, color = TextoSecundario)
+                    Text(
+                        "Calificación: ${formatoCalificacionUsuario(usuario.calificacion)}",
+                        fontSize = 13.sp,
+                        color = TextoSecundario
+                    )
                 }
 
                 ChipEstado(
@@ -276,6 +310,11 @@ private fun TarjetaUsuario(
             Spacer(Modifier.height(8.dp))
 
             Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                if (usuario.rol == "CONDUCTOR" || usuario.rol == "MECANICO") {
+                    TextButton(onClick = onCalificar) {
+                        Text("Calificar", fontSize = 13.sp, color = AzulPrimario)
+                    }
+                }
                 if (usuario.estado != "ACTIVO") {
                     TextButton(onClick = { mostrarConfirmacion = "ACTIVO" }) {
                         Text("Activar", fontSize = 13.sp, color = AzulPrimario)
@@ -294,6 +333,93 @@ private fun TarjetaUsuario(
             }
         }
     }
+}
+
+@Composable
+private fun DialogoCalificarUsuario(
+    usuario: UsuarioListado,
+    onCalificar: (Double?) -> Unit,
+    onCerrar: () -> Unit
+) {
+    var calificacionTexto by remember(usuario.id) {
+        mutableStateOf(usuario.calificacion?.toString().orEmpty())
+    }
+    var error by remember { mutableStateOf("") }
+
+    AlertDialog(
+        onDismissRequest = onCerrar,
+        title = { Text("Calificar usuario") },
+        text = {
+            Column {
+                Text(
+                    "Usuario: ${usuario.nombreCompleto}",
+                    fontSize = 14.sp,
+                    color = TextoSecundario
+                )
+
+                Spacer(Modifier.height(12.dp))
+
+                Text(
+                    "Ingrese una calificación de 1.0 a 5.0 según los reportes y el desempeño revisado.",
+                    fontSize = 13.sp,
+                    color = TextoSecundario
+                )
+
+                Spacer(Modifier.height(12.dp))
+
+                OutlinedTextField(
+                    value = calificacionTexto,
+                    onValueChange = { nuevoTexto ->
+                        calificacionTexto = nuevoTexto
+                        error = ""
+                    },
+                    label = { Text("Calificación") },
+                    placeholder = { Text("Ej: 4.8") },
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal)
+                )
+
+                if (error.isNotBlank()) {
+                    Spacer(Modifier.height(8.dp))
+                    Text(error, fontSize = 13.sp, color = RojoTexto)
+                }
+
+                if (usuario.calificacion != null) {
+                    Spacer(Modifier.height(8.dp))
+                    TextButton(onClick = { onCalificar(null) }) {
+                        Text("Quitar calificación", color = RojoTexto)
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(
+                onClick = {
+                    val calificacion = calificacionTexto
+                        .trim()
+                        .replace(",", ".")
+                        .toDoubleOrNull()
+
+                    if (calificacion == null) {
+                        error = "Debe ingresar un número válido"
+                        return@TextButton
+                    }
+
+                    if (calificacion < 1.0 || calificacion > 5.0) {
+                        error = "La calificación debe estar entre 1.0 y 5.0"
+                        return@TextButton
+                    }
+
+                    onCalificar(calificacion)
+                }
+            ) {
+                Text("Guardar", color = AzulPrimario)
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onCerrar) { Text("Cancelar") }
+        }
+    )
 }
 
 @Composable

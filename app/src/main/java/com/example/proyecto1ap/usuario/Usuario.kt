@@ -12,7 +12,8 @@ data class Usuario(
     val telefono: String? = null,
     @SerialName("numero_licencia") val numeroLicencia: String? = null,
     val rol: String,
-    val estado: String = "ACTIVO"
+    val estado: String = "ACTIVO",
+    val calificacion: Double? = null
 )@Serializable
 
 data class UsuarioListado(
@@ -24,6 +25,7 @@ data class UsuarioListado(
     @SerialName("numero_licencia") val numeroLicencia: String? = null,
     val rol: String,
     val estado: String,
+    val calificacion: Double? = null,
     @SerialName("vehiculo_id") val vehiculoId: Long? = null,
     @SerialName("vehiculo_placa") val vehiculoPlaca: String? = null,
     @SerialName("vehiculo_marca") val vehiculoMarca: String? = null,
@@ -33,7 +35,8 @@ data class UsuarioListado(
 
 )
 @Serializable
-data class PerfilEditable(
+data class UsuarioPerfilActualizacion(
     @SerialName("nombre_completo") val nombreCompleto: String,
-    val telefono: String? = null
+    val telefono: String? = null,
+    @SerialName("numero_licencia") val numeroLicencia: String? = null
 )

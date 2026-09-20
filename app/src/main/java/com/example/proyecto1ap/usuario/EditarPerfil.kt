@@ -78,7 +78,7 @@ class EditarPerfil : ViewModel() {
         viewModelScope.launch {
             _state.update { it.copy(guardando = true, mensaje = null) }
 
-            val datos = PerfilEditable(
+            val datos = UsuarioPerfilActualizacion(
                 nombreCompleto = s.nombreCompleto.trim(),
                 telefono = s.telefono.trim().ifBlank { null }
             )

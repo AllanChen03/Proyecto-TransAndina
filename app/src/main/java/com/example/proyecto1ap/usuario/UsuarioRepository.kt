@@ -21,6 +21,14 @@ class UsuarioRepository {
         }
     }
 
+    suspend fun cambiarCalificacion(id: String, calificacion: Double?): Result<Unit> = runCatching {
+        SupabaseManager.client.from("usuarios").update(
+            mapOf("calificacion" to calificacion)
+        ) {
+            filter { eq("id", id) }
+        }
+    }
+
     suspend fun vehiculosDisponibles(): Result<List<Vehiculo>> = runCatching {
         SupabaseManager.client.from("vehiculos").select {
             filter { eq("estado", "ACTIVO") }
@@ -58,7 +66,7 @@ class UsuarioRepository {
         }.decodeSingle<Usuario>()
     }
 
-    suspend fun actualizarPerfil(datos: PerfilEditable): Result<Unit> = runCatching {
+    suspend fun actualizarPerfil(datos: UsuarioPerfilActualizacion): Result<Unit> = runCatching {
         val id = SupabaseManager.client.auth.currentUserOrNull()?.id
             ?: error("No hay sesión activa")
         SupabaseManager.client.from("usuarios").update(datos) {

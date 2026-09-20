@@ -49,6 +49,10 @@ data class OpcionMenu(
     val onClick: () -> Unit
 )
 
+private fun formatoCalificacion(calificacion: Double?): String {
+    return calificacion?.let { "%.1f / 5".format(it) } ?: "Sin calificación"
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PantallaHomeRol(
@@ -72,6 +76,8 @@ fun PantallaHomeRol(
         "ENCARGADO" -> "Encargado de flota"
         else -> "Sin rol"
     }
+    val rolUsuario = usuario?.rol?.trim()?.uppercase()
+    val puedeSerCalificado = rolUsuario == "CONDUCTOR" || rolUsuario == "MECANICO"
 
     Scaffold(
         modifier = modifier,
@@ -155,6 +161,9 @@ fun PantallaHomeRol(
                 FilaDato("Cédula", usuario?.cedula ?: "-")
                 FilaDato("Teléfono", usuario?.telefono ?: "-")
                 FilaDato("Correo", usuario?.correo ?: "-")
+                if (puedeSerCalificado) {
+                    FilaDato("Calificación", formatoCalificacion(usuario?.calificacion))
+                }
                 if (usuario?.numeroLicencia != null) {
                     FilaDato("Licencia", usuario.numeroLicencia)
                 }
