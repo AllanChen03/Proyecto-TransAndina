@@ -46,6 +46,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.proyecto1ap.ui.componentes.ChipEstado
+import com.example.proyecto1ap.ui.componentes.EstadoVisual
 import com.example.proyecto1ap.ui.theme.AzulPrimario
 import com.example.proyecto1ap.ui.theme.Borde
 import com.example.proyecto1ap.ui.theme.FondoApp
@@ -53,6 +55,22 @@ import com.example.proyecto1ap.ui.theme.RojoTexto
 import com.example.proyecto1ap.ui.theme.Superficie
 import com.example.proyecto1ap.ui.theme.TextoPrincipal
 import com.example.proyecto1ap.ui.theme.TextoSecundario
+
+private fun etiquetaEstadoVehiculo(estado: String): String {
+    return when (estado.trim().uppercase()) {
+        "ACTIVO" -> "Activo"
+        "INACTIVO" -> "Inactivo"
+        else -> estado.ifBlank { "Sin estado" }
+    }
+}
+
+private fun estadoVisualVehiculo(estado: String): EstadoVisual {
+    return when (estado.trim().uppercase()) {
+        "ACTIVO" -> EstadoVisual.OK
+        "INACTIVO" -> EstadoVisual.CRITICO
+        else -> EstadoVisual.ADVERTENCIA
+    }
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -202,6 +220,11 @@ private fun TarjetaVehiculo(
                         text = "${vehiculo.marca} ${vehiculo.modelo} ${vehiculo.anio}",
                         fontSize = 14.sp,
                         color = TextoSecundario
+                    )
+                    Spacer(Modifier.height(6.dp))
+                    ChipEstado(
+                        texto = etiquetaEstadoVehiculo(vehiculo.estado),
+                        estado = estadoVisualVehiculo(vehiculo.estado)
                     )
                     Spacer(Modifier.height(2.dp))
                     Text(
