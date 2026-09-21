@@ -104,6 +104,8 @@ class EditarVehiculo(private val vehiculoId: Long) : ViewModel() {
     fun onVenceSeguro(v: String) = _state.update { it.copy(vencimientoSeguro = v) }
     fun limpiarMensaje() = _state.update { it.copy(mensaje = null) }
 
+    fun limpiarGuardado() = _state.update { it.copy(guardadoExitoso = false) }
+
     fun hayCambios(): Boolean {
         val o = original ?: return false
         val s = _state.value

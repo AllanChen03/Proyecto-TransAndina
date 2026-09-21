@@ -257,6 +257,7 @@ fun AppPrincipal(
         "editarVehiculo" -> PantallaVehiculoEditar(
             vehiculoId = vehiculoSeleccionado,
             onVolver = { pantallaActual = "detalleVehiculo" },
+            onGuardado = { pantallaActual = "detalleVehiculo" },
             modifier = modifier
         )
 

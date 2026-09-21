@@ -54,6 +54,7 @@ fun PantallaVehiculoEditar(
     vehiculoId: Long,
     onVolver: () -> Unit = {},
     onHistorialKm: () -> Unit = {},
+    onGuardado: () -> Unit = {},
     modifier: Modifier = Modifier,
     vm: EditarVehiculo = viewModel(
         key = vehiculoId.toString(),
@@ -78,7 +79,10 @@ fun PantallaVehiculoEditar(
     }
 
     LaunchedEffect(s.guardadoExitoso) {
-        if (s.guardadoExitoso) onVolver()
+        if (s.guardadoExitoso) {
+            vm.limpiarGuardado()
+            onGuardado()
+        }
     }
 
     if (mostrarDialogo) {

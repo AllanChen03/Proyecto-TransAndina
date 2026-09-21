@@ -55,8 +55,6 @@ import com.example.proyecto1ap.ui.theme.RojoTexto
 import com.example.proyecto1ap.ui.theme.Superficie
 import com.example.proyecto1ap.ui.theme.TextoPrincipal
 import com.example.proyecto1ap.ui.theme.TextoSecundario
-import com.example.proyecto1ap.ui.componentes.ChipEstado
-import com.example.proyecto1ap.ui.componentes.EstadoVisual
 import androidx.compose.runtime.LaunchedEffect
 
 private fun etiquetaEstadoVehiculo(estado: String): String {
