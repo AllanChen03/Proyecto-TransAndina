@@ -9,6 +9,9 @@ import androidx.compose.ui.Modifier
 import com.example.proyecto1ap.alertas.PantallaCentroAlertas
 import com.example.proyecto1ap.kilometraje.PantallaHistorialKilometraje
 import com.example.proyecto1ap.kilometraje.PantallaRegistrarKilometraje
+import com.example.proyecto1ap.mantenimiento.PantallaDetalleMantenimiento
+import com.example.proyecto1ap.mantenimiento.PantallaHistorialMantenimientos
+import com.example.proyecto1ap.mantenimiento.PantallaRegistrarMantenimiento
 import com.example.proyecto1ap.reportes.PantallaReportes
 import com.example.proyecto1ap.usuario.PantallaCambiarContrasena
 import com.example.proyecto1ap.usuario.PantallaDetalleUsuario
@@ -42,15 +45,31 @@ fun AppPrincipal(
 ) {
     var pantallaActual by remember { mutableStateOf(pantallaInicial) }
     var usuarioActual by remember { mutableStateOf<Usuario?>(null) }
+
+    // Selección actual
     var vehiculoSeleccionado by remember { mutableStateOf(0L) }
     var usuarioSeleccionado by remember { mutableStateOf("") }
+    var mantenimientoSeleccionado by remember { mutableStateOf(0L) }
+
+    // Parámetros del historial de kilometraje
     var historialVehiculoId by remember { mutableStateOf<Long?>(null) }
     var historialVolver by remember { mutableStateOf("homeConductor") }
+
+    // Parámetros del historial de mantenimientos
+    var mantenimientoVehiculoId by remember { mutableStateOf<Long?>(null) }
+    var mantenimientoSoloMios by remember { mutableStateOf(true) }
+    var historialMantVolver by remember { mutableStateOf("homeMecanico") }
+    var detalleMantVolver by remember { mutableStateOf("historialMantenimientos") }
+
+    // Otros retornos
+    var registroMantVolver by remember { mutableStateOf("homeMecanico") }
     var alertasVolver by remember { mutableStateOf("homeConductor") }
 
     when (pantallaActual) {
 
-        // ---------- Autenticación ----------
+        // ============================================
+        // AUTENTICACIÓN
+        // ============================================
 
         "login" -> PantallaInicial(
             modifier = modifier,
@@ -79,7 +98,9 @@ fun AppPrincipal(
             cambioExitoso = { pantallaActual = "login" }
         )
 
-        // ---------- Home por rol ----------
+        // ============================================
+        // HOME POR ROL
+        // ============================================
 
         "homeConductor" -> PantallaHomeConductor(
             usuario = usuarioActual,
@@ -88,6 +109,16 @@ fun AppPrincipal(
                 historialVehiculoId = null
                 historialVolver = "homeConductor"
                 pantallaActual = "historialKilometraje"
+            },
+            onRegistrarMantenimiento = {
+                registroMantVolver = "homeConductor"
+                pantallaActual = "registrarMantenimiento"
+            },
+            onHistorialMantenimientos = {
+                mantenimientoVehiculoId = null
+                mantenimientoSoloMios = true
+                historialMantVolver = "homeConductor"
+                pantallaActual = "historialMantenimientos"
             },
             onAlertas = {
                 alertasVolver = "homeConductor"
@@ -102,6 +133,21 @@ fun AppPrincipal(
 
         "homeMecanico" -> PantallaHomeMecanico(
             usuario = usuarioActual,
+            onRegistrarMantenimiento = {
+                registroMantVolver = "homeMecanico"
+                pantallaActual = "registrarMantenimiento"
+            },
+            onHistorialMantenimientos = {
+                mantenimientoVehiculoId = null
+                mantenimientoSoloMios = true
+                historialMantVolver = "homeMecanico"
+                pantallaActual = "historialMantenimientos"
+            },
+            onMantenimiento = { id ->
+                mantenimientoSeleccionado = id
+                detalleMantVolver = "homeMecanico"
+                pantallaActual = "detalleMantenimiento"
+            },
             onAlertas = {
                 alertasVolver = "homeMecanico"
                 pantallaActual = "centroAlertas"
@@ -110,7 +156,8 @@ fun AppPrincipal(
             cerrarSesion = {
                 usuarioActual = null
                 pantallaActual = "login"
-            }
+            },
+            modifier = modifier
         )
 
         "homeEncargado" -> PantallaHomeEncargado(
@@ -141,7 +188,9 @@ fun AppPrincipal(
             )
         }
 
-        // ---------- Gestión de usuarios ----------
+        // ============================================
+        // GESTIÓN DE USUARIOS
+        // ============================================
 
         "gestionUsuarios" -> PantallaGestionUsuarios(
             onVolver = { pantallaActual = "homeEncargado" },
@@ -158,7 +207,9 @@ fun AppPrincipal(
             modifier = modifier
         )
 
-        // ---------- Gestión de flotilla ----------
+        // ============================================
+        // GESTIÓN DE FLOTILLA
+        // ============================================
 
         "flotilla" -> PantallaFlotilla(
             onVolver = { pantallaActual = "homeEncargado" },
@@ -179,6 +230,12 @@ fun AppPrincipal(
                 historialVolver = "detalleVehiculo"
                 pantallaActual = "historialKilometraje"
             },
+            onHistorialMantenimientos = {
+                mantenimientoVehiculoId = vehiculoSeleccionado
+                mantenimientoSoloMios = false
+                historialMantVolver = "detalleVehiculo"
+                pantallaActual = "historialMantenimientos"
+            },
             modifier = modifier
         )
 
@@ -194,7 +251,9 @@ fun AppPrincipal(
             modifier = modifier
         )
 
-        // ---------- Kilometraje ----------
+        // ============================================
+        // KILOMETRAJE
+        // ============================================
 
         "registrarKilometraje" -> usuarioActual?.let { u ->
             PantallaRegistrarKilometraje(
@@ -212,7 +271,37 @@ fun AppPrincipal(
             modifier = modifier
         )
 
-        // ---------- Alertas y reportes ----------
+        // ============================================
+        // MANTENIMIENTOS
+        // ============================================
+
+        "registrarMantenimiento" -> PantallaRegistrarMantenimiento(
+            onVolver = { pantallaActual = registroMantVolver },
+            onGuardado = { pantallaActual = registroMantVolver },
+            modifier = modifier
+        )
+
+        "historialMantenimientos" -> PantallaHistorialMantenimientos(
+            vehiculoId = mantenimientoVehiculoId,
+            soloMios = mantenimientoSoloMios,
+            onVolver = { pantallaActual = historialMantVolver },
+            onMantenimiento = { id ->
+                mantenimientoSeleccionado = id
+                detalleMantVolver = "historialMantenimientos"
+                pantallaActual = "detalleMantenimiento"
+            },
+            modifier = modifier
+        )
+
+        "detalleMantenimiento" -> PantallaDetalleMantenimiento(
+            mantenimientoId = mantenimientoSeleccionado,
+            onVolver = { pantallaActual = detalleMantVolver },
+            modifier = modifier
+        )
+
+        // ============================================
+        // ALERTAS Y REPORTES
+        // ============================================
 
         "centroAlertas" -> PantallaCentroAlertas(
             conductorId = usuarioActual
