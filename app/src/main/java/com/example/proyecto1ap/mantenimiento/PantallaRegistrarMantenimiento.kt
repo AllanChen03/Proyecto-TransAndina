@@ -48,6 +48,7 @@ import com.example.proyecto1ap.ui.theme.TextoSecundario
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PantallaRegistrarMantenimiento(
+    conductorId: String? = null,
     onVolver: () -> Unit = {},
     onGuardado: () -> Unit = {},
     modifier: Modifier = Modifier,
@@ -58,7 +59,11 @@ fun PantallaRegistrarMantenimiento(
     var mostrarDialogo by remember { mutableStateOf(false) }
     var mostrarExito by remember { mutableStateOf(false) }
 
-    val hayDatos = s.vehiculoId != null ||
+    LaunchedEffect(conductorId) {
+        vm.cargarVehiculoDelConductor(conductorId)
+    }
+
+    val hayDatos = (!s.vehiculoBloqueado && s.vehiculoId != null) ||
             s.fecha.isNotBlank() ||
             s.categoriaServicio != null ||
             s.kilometraje.isNotBlank() ||
@@ -170,19 +175,29 @@ fun PantallaRegistrarMantenimiento(
                 }
             )
 
-            CampoSelector(
-                etiqueta = "Vehículo",
-                valorSeleccionado = s.vehiculos.firstOrNull { it.id == s.vehiculoId }?.let {
-                    "${it.placa} (${it.marca} ${it.modelo})"
-                },
-                opciones = s.vehiculos.map { "${it.placa} (${it.marca} ${it.modelo})" },
-                onSeleccion = { desc ->
-                    s.vehiculos.firstOrNull {
-                        "${it.placa} (${it.marca} ${it.modelo})" == desc
-                    }?.id?.let(vm::onVehiculo)
-                },
-                placeholder = "Seleccionar vehículo"
-            )
+            if (s.vehiculoBloqueado) {
+                Text("Vehículo asignado", fontSize = 13.sp, color = TextoSecundario)
+                Text(
+                    text = s.vehiculos.firstOrNull { it.id == s.vehiculoId }?.let {
+                        "${it.placa} (${it.marca} ${it.modelo})"
+                    } ?: "No tiene vehículo activo asignado",
+                    color = if (s.vehiculoId == null) RojoTexto else TextoSecundario
+                )
+            } else {
+                CampoSelector(
+                    etiqueta = "Vehículo",
+                    valorSeleccionado = s.vehiculos.firstOrNull { it.id == s.vehiculoId }?.let {
+                        "${it.placa} (${it.marca} ${it.modelo})"
+                    },
+                    opciones = s.vehiculos.map { "${it.placa} (${it.marca} ${it.modelo})" },
+                    onSeleccion = { desc ->
+                        s.vehiculos.firstOrNull {
+                            "${it.placa} (${it.marca} ${it.modelo})" == desc
+                        }?.id?.let(vm::onVehiculo)
+                    },
+                    placeholder = "Seleccionar vehículo"
+                )
+            }
 
             CampoFechaSelector(
                 etiqueta = "Fecha de servicio",

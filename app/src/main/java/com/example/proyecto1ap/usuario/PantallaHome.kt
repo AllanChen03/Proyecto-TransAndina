@@ -74,6 +74,10 @@ private fun formatoCalificacion(calificacion: Double?): String {
     return calificacion?.let { "%.1f / 5".format(it) } ?: "Sin calificación"
 }
 
+private fun formatoCalificacionTarjeta(calificacion: Double?): String {
+    return calificacion?.let { "%.1f".format(it).replace(",", ".") } ?: "Sin calif."
+}
+
 /** Botón de opción del menú, común a todos los homes. */
 @Composable
 private fun BotonOpcion(texto: String, onClick: () -> Unit) {
@@ -283,6 +287,7 @@ fun PantallaHomeEncargado(
 // HOME CONDUCTOR
 // ============================================
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PantallaHomeConductor(
     usuario: Usuario?,
@@ -296,21 +301,82 @@ fun PantallaHomeConductor(
     cerrarSesion: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    PantallaHomeRol(
-        usuario = usuario,
-        opciones = listOf(
-            OpcionMenu("Registrar kilometraje", onRegistrarKilometraje),
-            OpcionMenu("Historial de kilometraje", onHistorialKilometraje),
-            OpcionMenu("Registrar mantenimiento", onRegistrarMantenimiento),
-            OpcionMenu("Historial de mantenimientos", onHistorialMantenimientos),
-            OpcionMenu("Ver vehículo asignado", onVerVehiculo),
-            OpcionMenu("Historial de mantenimientos", onHistorialMantenimientos),
-            OpcionMenu("Editar perfil", onEditarPerfil)
-        ),
-        onAlertas = onAlertas,
-        cerrarSesion = cerrarSesion,
-        modifier = modifier
-    )
+    var mostrarDialogoCerrar by remember { mutableStateOf(false) }
+
+    if (mostrarDialogoCerrar) {
+        DialogoCerrarSesion(
+            onConfirmar = {
+                mostrarDialogoCerrar = false
+                cerrarSesion()
+            },
+            onCancelar = { mostrarDialogoCerrar = false }
+        )
+    }
+
+    Scaffold(
+        modifier = modifier,
+        topBar = {
+            TopAppBar(
+                title = { Text("Menú principal", fontWeight = FontWeight.SemiBold) },
+                navigationIcon = {
+                    IconButton(onClick = { mostrarDialogoCerrar = true }) {
+                        Icon(
+                            Icons.AutoMirrored.Filled.Logout,
+                            contentDescription = "Cerrar sesión",
+                            tint = RojoTexto
+                        )
+                    }
+                },
+                actions = {
+                    IconButton(onClick = onAlertas) {
+                        Icon(
+                            Icons.Filled.Notifications,
+                            contentDescription = "Alertas",
+                            tint = AmarilloCampana
+                        )
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
+            )
+        }
+    ) { padding ->
+        Column(
+            modifier = Modifier
+                .padding(padding)
+                .fillMaxSize()
+                .background(FondoApp)
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            CabeceraPerfil(usuario, "Conductor")
+
+            Spacer(Modifier.height(20.dp))
+
+            MiniTarjetaEstadistica(
+                titulo = "Calificación",
+                valor = formatoCalificacionTarjeta(usuario?.calificacion),
+                icono = Icons.Filled.Star,
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            Spacer(Modifier.height(20.dp))
+
+            listOf(
+                OpcionMenu("Registrar kilometraje", onRegistrarKilometraje),
+                OpcionMenu("Historial de kilometraje", onHistorialKilometraje),
+                OpcionMenu("Registrar mantenimiento", onRegistrarMantenimiento),
+                OpcionMenu("Historial de mantenimientos", onHistorialMantenimientos),
+                OpcionMenu("Ver vehículo asignado", onVerVehiculo),
+                OpcionMenu("Editar perfil", onEditarPerfil)
+            ).forEach { opcion ->
+                BotonOpcion(opcion.titulo, opcion.onClick)
+                Spacer(Modifier.height(10.dp))
+            }
+
+            Spacer(Modifier.height(32.dp))
+        }
+    }
 }
 
 // ============================================
@@ -416,8 +482,7 @@ fun PantallaHomeMecanico(
                 )
                 MiniTarjetaEstadistica(
                     titulo = "Calificación",
-                    valor = if (s.cargando) "..."
-                    else "%.1f".format(s.calificacion).replace(",", "."),
+                    valor = if (s.cargando) "..." else formatoCalificacionTarjeta(usuario?.calificacion),
                     icono = Icons.Filled.Star,
                     modifier = Modifier.weight(1f)
                 )

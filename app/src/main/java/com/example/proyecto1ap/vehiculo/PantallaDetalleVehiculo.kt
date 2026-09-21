@@ -62,6 +62,7 @@ fun PantallaDetalleVehiculo(
     onEditar: (Long) -> Unit = {},
     onHistorialKilometraje: (Long) -> Unit = {},
     onHistorialMantenimientos: (Long) -> Unit = {},
+    mostrarEditar: Boolean = true,
     modifier: Modifier = Modifier,
     vm: DetalleVehiculo = viewModel(
         key = vehiculoId.toString(),
@@ -84,12 +85,14 @@ fun PantallaDetalleVehiculo(
                     }
                 },
                 actions = {
-                    IconButton(onClick = { onEditar(vehiculoId) }) {
-                        Icon(
-                            Icons.Filled.Edit,
-                            contentDescription = "Editar",
-                            tint = AzulPrimario
-                        )
+                    if (mostrarEditar) {
+                        IconButton(onClick = { onEditar(vehiculoId) }) {
+                            Icon(
+                                Icons.Filled.Edit,
+                                contentDescription = "Editar",
+                                tint = AzulPrimario
+                            )
+                        }
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)

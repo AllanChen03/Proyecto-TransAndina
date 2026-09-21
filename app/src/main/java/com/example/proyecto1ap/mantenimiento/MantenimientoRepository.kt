@@ -20,6 +20,15 @@ class MantenimientoRepository {
         }.decodeList<Vehiculo>()
     }
 
+    suspend fun vehiculoActivoPorConductor(conductorId: String): Result<List<Vehiculo>> = runCatching {
+        SupabaseManager.client.from("vehiculos").select {
+            filter {
+                eq("estado", "ACTIVO")
+                eq("conductor_id", conductorId)
+            }
+        }.decodeList<Vehiculo>()
+    }
+
     /** Placa de un vehículo, para títulos de pantalla. */
     suspend fun placaDe(vehiculoId: Long): String? = runCatching {
         SupabaseManager.client.from("vehiculos").select {
@@ -194,7 +203,6 @@ class MantenimientoRepository {
                 .getOrNull()
         }
     }
-
     suspend fun actualizar(id: Long, datos: MantenimientoEditable): Result<Unit> = runCatching {
         SupabaseManager.client.from("mantenimientos").update(datos) {
             filter { eq("id", id) }
@@ -241,6 +249,6 @@ class MantenimientoRepository {
             runCatching { bucket.createSignedUrl(ev.urlImagen, 2.hours) }
                 .getOrNull()
                 ?.let { FotoEvidencia(ev.id, ev.urlImagen, it) }
-        }
+            }
     }
 }
