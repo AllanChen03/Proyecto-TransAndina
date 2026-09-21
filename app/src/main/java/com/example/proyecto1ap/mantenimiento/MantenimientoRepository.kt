@@ -6,6 +6,7 @@ import com.example.proyecto1ap.vehiculo.Vehiculo
 import io.github.jan.supabase.postgrest.from
 import io.github.jan.supabase.storage.storage
 import kotlin.time.Duration.Companion.hours
+import io.github.jan.supabase.postgrest.query.Columns
 
 class MantenimientoRepository {
 
@@ -191,6 +192,55 @@ class MantenimientoRepository {
                 .onSuccess { android.util.Log.d("FOTOS", "URL generada: $it") }
                 .onFailure { android.util.Log.e("FOTOS", "Falló URL: ${it.message}", it) }
                 .getOrNull()
+        }
+    }
+
+    suspend fun actualizar(id: Long, datos: MantenimientoEditable): Result<Unit> = runCatching {
+        SupabaseManager.client.from("mantenimientos").update(datos) {
+            filter { eq("id", id) }
+        }
+        Unit
+    }
+
+
+    suspend fun eliminar(id: Long): Result<Unit> = runCatching {
+        val evidencias = SupabaseManager.client.from("evidencias_fotograficas").select {
+            filter { eq("mantenimiento_id", id) }
+        }.decodeList<EvidenciaFila>()
+
+        if (evidencias.isNotEmpty()) {
+            runCatching {
+                SupabaseManager.client.storage.from("mantenimientos")
+                    .delete(evidencias.map { it.urlImagen })
+            }
+        }
+
+        SupabaseManager.client.from("mantenimientos").delete {
+            filter { eq("id", id) }
+        }
+        Unit
+    }
+
+    suspend fun eliminarEvidencia(evidenciaId: Long, ruta: String): Result<Unit> = runCatching {
+        runCatching {
+            SupabaseManager.client.storage.from("mantenimientos").delete(listOf(ruta))
+        }
+        SupabaseManager.client.from("evidencias_fotograficas").delete {
+            filter { eq("id", evidenciaId) }
+        }
+        Unit
+    }
+
+    suspend fun evidenciasDe(mantenimientoId: Long): Result<List<FotoEvidencia>> = runCatching {
+        val evidencias = SupabaseManager.client.from("evidencias_fotograficas").select {
+            filter { eq("mantenimiento_id", mantenimientoId) }
+        }.decodeList<EvidenciaFila>()
+
+        val bucket = SupabaseManager.client.storage.from("mantenimientos")
+        evidencias.mapNotNull { ev ->
+            runCatching { bucket.createSignedUrl(ev.urlImagen, 2.hours) }
+                .getOrNull()
+                ?.let { FotoEvidencia(ev.id, ev.urlImagen, it) }
         }
     }
 }

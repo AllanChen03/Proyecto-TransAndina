@@ -10,6 +10,7 @@ import com.example.proyecto1ap.alertas.PantallaCentroAlertas
 import com.example.proyecto1ap.kilometraje.PantallaHistorialKilometraje
 import com.example.proyecto1ap.kilometraje.PantallaRegistrarKilometraje
 import com.example.proyecto1ap.mantenimiento.PantallaDetalleMantenimiento
+import com.example.proyecto1ap.mantenimiento.PantallaEditarMantenimiento
 import com.example.proyecto1ap.mantenimiento.PantallaHistorialMantenimientos
 import com.example.proyecto1ap.mantenimiento.PantallaRegistrarMantenimiento
 import com.example.proyecto1ap.reportes.PantallaReportes
@@ -164,6 +165,12 @@ fun AppPrincipal(
             usuario = usuarioActual,
             onGestionFlotilla = { pantallaActual = "flotilla" },
             onGestionUsuarios = { pantallaActual = "gestionUsuarios" },
+            onHistorialMantenimientos = {
+                mantenimientoVehiculoId = null
+                mantenimientoSoloMios = false
+                historialMantVolver = "homeEncargado"
+                pantallaActual = "historialMantenimientos"
+            },
             onAlertas = {
                 alertasVolver = "homeEncargado"
                 pantallaActual = "centroAlertas"
@@ -295,7 +302,17 @@ fun AppPrincipal(
 
         "detalleMantenimiento" -> PantallaDetalleMantenimiento(
             mantenimientoId = mantenimientoSeleccionado,
+            esEncargado = usuarioActual?.rol?.trim()?.uppercase() == "ENCARGADO",
             onVolver = { pantallaActual = detalleMantVolver },
+            onEditar = { pantallaActual = "editarMantenimiento" },
+            onEliminado = { pantallaActual = detalleMantVolver },
+            modifier = modifier
+        )
+
+        "editarMantenimiento" -> PantallaEditarMantenimiento(
+            mantenimientoId = mantenimientoSeleccionado,
+            onVolver = { pantallaActual = "detalleMantenimiento" },
+            onGuardado = { pantallaActual = "detalleMantenimiento" },
             modifier = modifier
         )
 

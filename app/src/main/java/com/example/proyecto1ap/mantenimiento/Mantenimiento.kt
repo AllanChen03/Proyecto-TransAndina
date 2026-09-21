@@ -95,3 +95,21 @@ data class MantenimientoDetalle(
     val taller: String?,
     val mecanicoNombre: String?
 )
+
+@Serializable
+data class MantenimientoEditable(
+    @SerialName("vehiculo_id") val vehiculoId: Long,
+    @SerialName("tipo_mantenimiento") val tipoMantenimiento: String,
+    @SerialName("categoria_servicio") val categoriaServicio: String,
+    @SerialName("fecha_mantenimiento") val fechaMantenimiento: String,
+    val kilometraje: Int? = null,
+    val descripcion: String,
+    @SerialName("costo_aproximado") val costoAproximado: Double? = null,
+    val taller: String? = null
+)
+
+data class FotoEvidencia(
+    val id: Long,
+    val ruta: String,
+    val url: String
+)

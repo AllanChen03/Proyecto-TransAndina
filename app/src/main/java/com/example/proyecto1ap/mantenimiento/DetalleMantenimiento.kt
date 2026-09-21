@@ -12,6 +12,8 @@ data class DetalleMantenimientoState(
     val mantenimiento: MantenimientoDetalle? = null,
     val fotos: List<String> = emptyList(),
     val cargando: Boolean = true,
+    val eliminando: Boolean = false,
+    val eliminado: Boolean = false,
     val error: String? = null
 )
 
@@ -39,6 +41,27 @@ class DetalleMantenimiento(private val mantenimientoId: Long) : ViewModel() {
                     _state.update {
                         it.copy(cargando = false, error = "No se pudo cargar: ${e.message}")
                     }
+                }
+        }
+    }
+
+    fun limpiarError() = _state.update { it.copy(error = null) }
+
+    fun eliminar() {
+        viewModelScope.launch {
+            _state.update { it.copy(eliminando = true, error = null) }
+
+            repo.eliminar(mantenimientoId)
+                .onSuccess {
+                    _state.update { it.copy(eliminando = false, eliminado = true) }
+                }
+                .onFailure { e ->
+                    val msg = when {
+                        e.message?.contains("row-level security") == true ->
+                            "Solo el encargado de flota puede eliminar mantenimientos"
+                        else -> "No se pudo eliminar: ${e.message}"
+                    }
+                    _state.update { it.copy(eliminando = false, error = msg) }
                 }
         }
     }

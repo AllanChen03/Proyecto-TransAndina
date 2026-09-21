@@ -14,7 +14,9 @@ import java.time.LocalDate
 data class HistorialMantenimientosState(
     val registros: List<MantenimientoListado> = emptyList(),
     val placaVehiculo: String? = null,
+    val busqueda: String = "",
     val filtroTipo: TipoMantenimiento? = null,
+    val filtroCategoria: String? = null,
     val desde: String = "",
     val hasta: String = "",
     val cargando: Boolean = true,
@@ -22,7 +24,15 @@ data class HistorialMantenimientosState(
 ) {
     val registrosFiltrados: List<MantenimientoListado>
         get() = registros.filter { r ->
+            val pasaBusqueda = busqueda.isBlank() ||
+                    r.vehiculoPlaca.contains(busqueda, ignoreCase = true) ||
+                    r.vehiculoDescripcion.contains(busqueda, ignoreCase = true)
+
             val pasaTipo = filtroTipo == null || r.tipo == filtroTipo
+
+            val pasaCategoria = filtroCategoria == null ||
+                    r.categoriaServicio == etiquetaCategoria(filtroCategoria)
+
             val pasaFecha = if (desde.isBlank() && hasta.isBlank()) {
                 true
             } else {
@@ -33,14 +43,19 @@ data class HistorialMantenimientosState(
                         (desdeDate == null || !fecha.isBefore(desdeDate)) &&
                         (hastaDate == null || !fecha.isAfter(hastaDate))
             }
-            pasaTipo && pasaFecha
+
+            pasaBusqueda && pasaTipo && pasaCategoria && pasaFecha
         }
+
+    val hayFiltrosActivos: Boolean
+        get() = busqueda.isNotBlank() || filtroTipo != null ||
+                filtroCategoria != null || desde.isNotBlank() || hasta.isNotBlank()
 }
 
 /**
  * Historial de mantenimientos.
  *
- * - vehiculoId != null: muestra los de ese vehículo.
+ * - vehiculoId != null: solo los de ese vehículo.
  * - vehiculoId == null y soloMios = true: los registrados por el usuario actual.
  * - vehiculoId == null y soloMios = false: todos los de la flotilla.
  */
@@ -91,14 +106,26 @@ class HistorialMantenimientos(
         }
     }
 
-    fun onFiltroTipo(t: TipoMantenimiento) = _state.update { it.copy(filtroTipo = t) }
+    fun onBusqueda(v: String) = _state.update { it.copy(busqueda = v) }
 
-    fun limpiarFiltroTipo() = _state.update { it.copy(filtroTipo = null) }
+    fun onFiltroTipo(t: TipoMantenimiento?) = _state.update { it.copy(filtroTipo = t) }
+
+    fun onFiltroCategoria(c: String?) = _state.update { it.copy(filtroCategoria = c) }
 
     fun onRango(desde: String, hasta: String) =
         _state.update { it.copy(desde = desde, hasta = hasta) }
 
     fun limpiarRango() = _state.update { it.copy(desde = "", hasta = "") }
+
+    fun limpiarFiltros() = _state.update {
+        it.copy(
+            busqueda = "",
+            filtroTipo = null,
+            filtroCategoria = null,
+            desde = "",
+            hasta = ""
+        )
+    }
 }
 
 class HistorialMantenimientosFactory(

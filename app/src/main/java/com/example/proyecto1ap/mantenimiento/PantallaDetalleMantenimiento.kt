@@ -19,15 +19,22 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -48,6 +55,7 @@ import com.example.proyecto1ap.ui.componentes.ChipEstado
 import com.example.proyecto1ap.ui.componentes.EstadoVisual
 import com.example.proyecto1ap.ui.componentes.FilaDato
 import com.example.proyecto1ap.ui.componentes.TarjetaSeccion
+import com.example.proyecto1ap.ui.theme.AzulPrimario
 import com.example.proyecto1ap.ui.theme.FondoApp
 import com.example.proyecto1ap.ui.theme.RojoTexto
 import com.example.proyecto1ap.ui.theme.TextoPrincipal
@@ -57,7 +65,10 @@ import com.example.proyecto1ap.ui.theme.TextoSecundario
 @Composable
 fun PantallaDetalleMantenimiento(
     mantenimientoId: Long,
+    esEncargado: Boolean = false,
     onVolver: () -> Unit = {},
+    onEditar: (Long) -> Unit = {},
+    onEliminado: () -> Unit = {},
     modifier: Modifier = Modifier,
     vm: DetalleMantenimiento = viewModel(
         key = mantenimientoId.toString(),
@@ -66,8 +77,25 @@ fun PantallaDetalleMantenimiento(
 ) {
     val s by vm.state.collectAsState()
     val m = s.mantenimiento
-    var fotoAmpliada by remember { mutableStateOf<String?>(null) }
+    val snackbar = remember { SnackbarHostState() }
 
+    var fotoAmpliada by remember { mutableStateOf<String?>(null) }
+    var confirmarBorrado by remember { mutableStateOf(false) }
+
+    LaunchedEffect(Unit) { vm.cargar() }
+
+    LaunchedEffect(s.eliminado) {
+        if (s.eliminado) onEliminado()
+    }
+
+    LaunchedEffect(s.error) {
+        s.error?.let {
+            snackbar.showSnackbar(it)
+            vm.limpiarError()
+        }
+    }
+
+    // Foto ampliada
     fotoAmpliada?.let { url ->
         Dialog(onDismissRequest = { fotoAmpliada = null }) {
             AsyncImage(
@@ -80,6 +108,33 @@ fun PantallaDetalleMantenimiento(
                 contentScale = ContentScale.Fit
             )
         }
+    }
+
+    // Confirmación de borrado
+    if (confirmarBorrado) {
+        AlertDialog(
+            onDismissRequest = { confirmarBorrado = false },
+            title = { Text("Eliminar mantenimiento") },
+            text = {
+                Text(
+                    "Se eliminará el registro y todas sus fotos. " +
+                            "Esta acción no se puede deshacer."
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    confirmarBorrado = false
+                    vm.eliminar()
+                }) {
+                    Text("Eliminar", color = RojoTexto)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { confirmarBorrado = false }) {
+                    Text("Cancelar")
+                }
+            }
+        )
     }
 
     Scaffold(
@@ -95,9 +150,31 @@ fun PantallaDetalleMantenimiento(
                         )
                     }
                 },
+                actions = {
+                    if (esEncargado && m != null) {
+                        IconButton(onClick = { onEditar(mantenimientoId) }) {
+                            Icon(
+                                Icons.Filled.Edit,
+                                contentDescription = "Editar",
+                                tint = AzulPrimario
+                            )
+                        }
+                        IconButton(
+                            onClick = { confirmarBorrado = true },
+                            enabled = !s.eliminando
+                        ) {
+                            Icon(
+                                Icons.Filled.Delete,
+                                contentDescription = "Eliminar",
+                                tint = RojoTexto
+                            )
+                        }
+                    }
+                },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
             )
-        }
+        },
+        snackbarHost = { SnackbarHost(snackbar) }
     ) { padding ->
 
         when {
@@ -108,13 +185,13 @@ fun PantallaDetalleMantenimiento(
                 contentAlignment = Alignment.Center
             ) { CircularProgressIndicator() }
 
-            s.error != null || m == null -> Box(
+            m == null -> Box(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(padding),
                 contentAlignment = Alignment.Center
             ) {
-                Text(s.error ?: "Mantenimiento no encontrado", color = RojoTexto)
+                Text("Mantenimiento no encontrado", color = RojoTexto)
             }
 
             else -> Column(
@@ -165,7 +242,7 @@ fun PantallaDetalleMantenimiento(
                         "Costo",
                         m.costo?.let { "₡%,.0f".format(it) } ?: "No registrado"
                     )
-                    FilaDato("Realizado por", m.mecanicoNombre ?: "—")
+                    FilaDato("Registrado por", m.mecanicoNombre ?: "—")
                     if (!m.taller.isNullOrBlank()) {
                         FilaDato("Taller externo", m.taller)
                     }
