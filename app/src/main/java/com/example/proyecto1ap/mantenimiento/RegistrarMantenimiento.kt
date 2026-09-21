@@ -18,6 +18,7 @@ data class RegistrarMantenimientoState(
     val tipo: TipoMantenimiento = TipoMantenimiento.PREVENTIVO,
     val vehiculos: List<Vehiculo> = emptyList(),
     val vehiculoId: Long? = null,
+    val vehiculoBloqueado: Boolean = false,
     val fecha: String = "",
     val categoriaServicio: String? = null,
     val kilometraje: String = "",
@@ -66,6 +67,42 @@ class RegistrarMantenimiento(application: Application) : AndroidViewModel(applic
         }
     }
 
+    fun cargarVehiculoDelConductor(conductorId: String?) {
+        if (conductorId == null) {
+            cargarVehiculos()
+            _state.update { it.copy(vehiculoBloqueado = false, vehiculoId = null) }
+            return
+        }
+
+        viewModelScope.launch {
+            repo.vehiculoActivoPorConductor(conductorId)
+                .onSuccess { lista ->
+                    _state.update {
+                        it.copy(
+                            vehiculos = lista,
+                            vehiculoId = lista.firstOrNull()?.id,
+                            vehiculoBloqueado = true,
+                            mensaje = if (lista.isEmpty()) {
+                                "No tenés un vehículo activo asignado"
+                            } else {
+                                null
+                            }
+                        )
+                    }
+                }
+                .onFailure { e ->
+                    _state.update {
+                        it.copy(
+                            vehiculos = emptyList(),
+                            vehiculoId = null,
+                            vehiculoBloqueado = true,
+                            mensaje = "Error cargando vehículo asignado: ${e.message}"
+                        )
+                    }
+                }
+        }
+    }
+
     fun onTipo(t: TipoMantenimiento) = _state.update { it.copy(tipo = t) }
 
     fun onVehiculo(id: Long) = _state.update { it.copy(vehiculoId = id) }
@@ -93,7 +130,11 @@ class RegistrarMantenimiento(application: Application) : AndroidViewModel(applic
 
     /** Limpia el formulario para cargar otro mantenimiento, sin recargar vehículos. */
     fun nuevoRegistro() = _state.update {
-        RegistrarMantenimientoState(vehiculos = it.vehiculos)
+        RegistrarMantenimientoState(
+            vehiculos = it.vehiculos,
+            vehiculoId = if (it.vehiculoBloqueado) it.vehiculos.firstOrNull()?.id else null,
+            vehiculoBloqueado = it.vehiculoBloqueado
+        )
     }
 
     fun guardar() {

@@ -42,4 +42,10 @@ class VehiculoRepository {
             filter { eq("id", id) }
         }.decodeSingle<VehiculoListado>()
     }
+
+    suspend fun vehiculoPorConductor(conductorId: String): Result<VehiculoListado?> = runCatching {
+        SupabaseManager.client.from("vehiculos_listado").select {
+            filter { eq("conductor_id", conductorId) }
+        }.decodeList<VehiculoListado>().firstOrNull()
+    }
 }

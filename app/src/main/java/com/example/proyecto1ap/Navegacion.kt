@@ -27,6 +27,7 @@ import com.example.proyecto1ap.usuario.PantallaRegistro
 import com.example.proyecto1ap.usuario.Usuario
 import com.example.proyecto1ap.vehiculo.PantallaDetalleVehiculo
 import com.example.proyecto1ap.vehiculo.PantallaFlotilla
+import com.example.proyecto1ap.vehiculo.PantallaVehiculoAsignado
 import com.example.proyecto1ap.vehiculo.PantallaVehiculoEditar
 import com.example.proyecto1ap.vehiculo.PantallaVehiculoRegistro
 
@@ -121,6 +122,7 @@ fun AppPrincipal(
                 historialMantVolver = "homeConductor"
                 pantallaActual = "historialMantenimientos"
             },
+            onVerVehiculo = { pantallaActual = "vehiculoAsignado" },
             onAlertas = {
                 alertasVolver = "homeConductor"
                 pantallaActual = "centroAlertas"
@@ -258,6 +260,25 @@ fun AppPrincipal(
             modifier = modifier
         )
 
+        "vehiculoAsignado" -> usuarioActual?.let { usuario ->
+            PantallaVehiculoAsignado(
+                conductorId = usuario.id,
+                onVolver = { pantallaActual = "homeConductor" },
+                onHistorialKilometraje = { id ->
+                    historialVehiculoId = id
+                    historialVolver = "vehiculoAsignado"
+                    pantallaActual = "historialKilometraje"
+                },
+                onHistorialMantenimientos = { id ->
+                    mantenimientoVehiculoId = id
+                    mantenimientoSoloMios = false
+                    historialMantVolver = "vehiculoAsignado"
+                    pantallaActual = "historialMantenimientos"
+                },
+                modifier = modifier
+            )
+        }
+
         // ============================================
         // KILOMETRAJE
         // ============================================
@@ -283,6 +304,9 @@ fun AppPrincipal(
         // ============================================
 
         "registrarMantenimiento" -> PantallaRegistrarMantenimiento(
+            conductorId = usuarioActual
+                ?.takeIf { it.rol.trim().uppercase() == "CONDUCTOR" }
+                ?.id,
             onVolver = { pantallaActual = registroMantVolver },
             onGuardado = { pantallaActual = registroMantVolver },
             modifier = modifier
