@@ -53,6 +53,9 @@ import com.example.proyecto1ap.ui.theme.RojoTexto
 import com.example.proyecto1ap.ui.theme.Superficie
 import com.example.proyecto1ap.ui.theme.TextoPrincipal
 import com.example.proyecto1ap.ui.theme.TextoSecundario
+import com.example.proyecto1ap.ui.componentes.ChipEstado
+import com.example.proyecto1ap.ui.componentes.EstadoVisual
+import androidx.compose.runtime.LaunchedEffect
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -65,6 +68,7 @@ fun PantallaFlotilla(
 ) {
     val s by vm.state.collectAsState()
 
+    LaunchedEffect(Unit) { vm.cargar() }
     Scaffold(
         modifier = modifier,
         topBar = {
@@ -191,12 +195,20 @@ private fun TarjetaVehiculo(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = vehiculo.placa,
-                        fontSize = 17.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = TextoPrincipal
-                    )
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            text = vehiculo.placa,
+                            fontSize = 17.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = TextoPrincipal
+                        )
+                        Spacer(Modifier.width(8.dp))
+                        val activo = vehiculo.estado == "ACTIVO"
+                        ChipEstado(
+                            texto = if (activo) "Activo" else "Inactivo",
+                            estado = if (activo) EstadoVisual.OK else EstadoVisual.CRITICO
+                        )
+                    }
                     Spacer(Modifier.height(2.dp))
                     Text(
                         text = "${vehiculo.marca} ${vehiculo.modelo} ${vehiculo.anio}",
